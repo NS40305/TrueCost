@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TrueCost Presentation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <div id="slides-container">
+
+        <!-- Slide 1 -->
+        <div class="slide">
+            <div class="flex items-center justify-center gap-20 w-full">
+                <div class="text-center">
+                    <h1>TRUECOST</h1>
+                    <h3>Is This Worth My Time?</h3>
+                </div>
+                <div class="phone-frame phone-frame-lg -rotate-3 hover:rotate-0 transition-transform duration-700">
+                    <div class="dynamic-island"></div>
+                    <img src="/mockup.png" alt="TrueCost App Preview" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2 -->
+        <div class="slide">
+            <h1 class="giant-header">THE WHY</h1>
+            <p>(External Motivators: Knowledge Gaps, User Needs, Benefits Sought, Problems)</p>
+        </div>
+
+        <!-- Slide 3 -->
+        <div class="slide left">
+            <h2>Knowledge Gap</h2>
+            <div class="two-col">
+                <div>
+                    <p>Prices are presented as abstract dollar amounts.</p>
+                    <p>They do not reflect the <span class="highlight">time and labor required to earn that
+                            money</span>.</p>
+                    <p class="text-white mt-8 mb-4">Research shows:</p>
+                    <ul>
+                        <li>Users underestimate small, frequent expenses.</li>
+                        <li>Users rarely translate price into working hours.</li>
+                        <li>Emotional awareness of cost is weak when represented only numerically.</li>
+                    </ul>
+                </div>
+                <div class="glass-card flex flex-col items-center justify-center p-6">
+                    <h3 class="text-xl mb-4">Before Thinking About Time Cost</h3>
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="chart1"></canvas>
+                    </div>
+                    <p class="text-sm mt-4 text-center">80% of participants rarely or never consider time cost before
+                        purchasing.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4 -->
+        <div class="slide left">
+            <h2>User Needs & Behavioral Insights</h2>
+            <div class="flex gap-12 items-center w-full max-w-7xl">
+                <div class="glass-card flex-1">
+                    <div class="two-col">
+                        <div>
+                            <h3 class="text-[#d8b4fe]">Users need:</h3>
+                            <ul>
+                                <li>Decision support at the moment of purchase</li>
+                                <li>A relatable cost metric (time instead of money)</li>
+                                <li>Guidance without guilt or pressure</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="text-[#d8b4fe]">Behavioral Insight:</h3>
+                            <ul>
+                                <li>Users respond more strongly to relatable measures (time, effort) than abstract
+                                    numbers.</li>
+                                <li>Decision support is most valuable at the moment of choice.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="phone-frame phone-frame-md rotate-3 hover:rotate-0 transition-transform duration-700">
+                    <div class="dynamic-island"></div>
+                    <img src="/IncomeSetting.png" alt="Income Setting Screen" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5 -->
+        <div class="slide left">
+            <h2>Benefits Sought & Core Problem</h2>
+            <div class="flex gap-12 items-center w-full max-w-7xl">
+                <div class="space-y-8 flex-1">
+                    <div class="glass-card">
+                        <h3 class="text-[#d8b4fe]">Benefits Sought</h3>
+                        <ul class="mb-0">
+                            <li>Reduce impulse purchases</li>
+                            <li>Increase awareness of accumulated spending</li>
+                            <li>Enable conscious, value-based decisions</li>
+                        </ul>
+                    </div>
+                    <div class="border-l-4 border-[#8b5cf6] pl-8 py-4">
+                        <h3 class="text-white mb-2">Core Problem Statement</h3>
+                        <p class="text-2xl text-[#cbd5e1] italic">"Young adults and students struggle to make informed
+                            spending decisions because prices do not reflect the time and effort required to earn the
+                            money."</p>
+                    </div>
+                </div>
+                <div class="phone-frame phone-frame-md -rotate-2 hover:rotate-0 transition-transform duration-700">
+                    <div class="dynamic-island"></div>
+                    <img src="/Summary.png" alt="Summary Screen" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6 -->
+        <div class="slide">
+            <h1 class="giant-header">NARROWED<br>PRIMARY USE CASE</h1>
+            <p class="mt-8">Instead of building a full budgeting system, I narrowed the focus to one core behavioral
+                moment.</p>
+        </div>
+
+        <!-- Slide 7 -->
+        <div class="slide left">
+            <h2>Primary Use Case & Simplified Flow</h2>
+            <div class="two-col items-center h-full">
+                <div>
+                    <p class="text-2xl leading-relaxed">
+                        An <span class="highlight">hourly wage earner</span> is about to purchase a non-essential item
+                        and wants to quickly evaluate if it is worth the <span class="highlight">working time</span>
+                        required.
+                    </p>
+                    <p class="mt-8 text-xl text-[#94a3b8] italic">This flow targets the moment of decision, not
+                        post-purchase reflection.</p>
+                </div>
+                <div class="glass-card relative">
+                    <div class="absolute w-1 bg-white/10 top-16 bottom-16 left-16 -ml-[2px]"></div>
+                    <div class="flex items-center gap-6 mb-8 relative z-10">
+                        <div
+                            class="w-12 h-12 rounded-full bg-[#8b5cf6] flex items-center justify-center font-bold text-white shrink-0">
+                            1</div>
+                        <p class="mb-0 text-white">User enters hourly wage</p>
+                    </div>
+                    <div class="flex items-center gap-6 mb-8 relative z-10">
+                        <div
+                            class="w-12 h-12 rounded-full bg-[#8b5cf6] flex items-center justify-center font-bold text-white shrink-0">
+                            2</div>
+                        <p class="mb-0 text-white">User enters product price</p>
+                    </div>
+                    <div class="flex items-center gap-6 mb-8 relative z-10">
+                        <div
+                            class="w-12 h-12 rounded-full bg-[#8b5cf6] flex items-center justify-center font-bold text-white shrink-0">
+                            3</div>
+                        <p class="mb-0 text-white">System converts price into hours of work</p>
+                    </div>
+                    <div class="flex items-center gap-6 relative z-10">
+                        <div
+                            class="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center font-bold text-white shrink-0 shadow-lg shadow-purple-500/50">
+                            4</div>
+                        <p class="mb-0 text-[#d8b4fe] font-semibold text-2xl">Reflection prompt: "Still worth it?"</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8 -->
+        <div class="slide">
+            <h1 class="giant-header">THE HOW</h1>
+            <p>(Assumptions, Research, Prototypes, Testing)</p>
+        </div>
+
+        <!-- Slide 9 -->
+        <div class="slide left">
+            <h2>Assumptions & Primary Research</h2>
+            <div class="two-col">
+                <div class="glass-card">
+                    <h3 class="text-[#d8b4fe]">Assumptions</h3>
+                    <ul>
+                        <li>Time-based framing increases emotional impact.</li>
+                        <li>Users can understand work-hour conversion without explanation.</li>
+                        <li>Reflection can influence spending intention.</li>
+                    </ul>
+                </div>
+                <div class="glass-card">
+                    <h3 class="text-[#d8b4fe]">Primary Research Methods</h3>
+                    <ul>
+                        <li>One-on-one interviews</li>
+                        <li>Pre-development survey</li>
+                    </ul>
+                    <div class="mt-8 p-4 rounded-xl bg-white/5 border border-white/10">
+                        <p class="text-sm mb-1 text-white">Purchase Focus</p>
+                        <p class="text-lg">Price/Budget: <span class="highlight">Majority</span></p>
+                        <p class="text-lg">Value changed by price: <span class="highlight">True</span></p>
+                        <p class="text-lg">Time cost considered: <span class="highlight text-red-400">Low</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10 -->
+        <div class="slide">
+            <h2>Survey Findings</h2>
+            <div class="two-col w-full max-w-5xl">
+                <div class="glass-card flex flex-col items-center">
+                    <h3 class="text-xl mb-6">Interest in Time Conversion Tool</h3>
+                    <div class="chart-container" style="height: 250px;">
+                        <canvas id="chart2"></canvas>
+                    </div>
+                </div>
+                <div class="glass-card flex flex-col items-center">
+                    <h3 class="text-xl mb-6">Most Useful Scenarios</h3>
+                    <div class="chart-container" style="height: 250px;">
+                        <canvas id="chart3"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11 -->
+        <div class="slide left">
+            <h2>Interview Highlight</h2>
+            <div class="glass-card w-full max-w-5xl mx-auto flex gap-12">
+                <div class="w-1/3 border-r border-white/10 pr-8">
+                    <div class="w-24 h-24 rounded-full bg-slate-800 mb-6 flex items-center justify-center text-4xl">
+                        🧑🏻‍💻</div>
+                    <h3 class="text-white mb-2">Daniel Sun</h3>
+                    <p class="text-lg mb-1">Age 24</p>
+                    <p class="text-lg mb-1">Fresh Graduate</p>
+                    <p class="text-lg mb-1 text-[#d8b4fe]">Part-time Work</p>
+                    <p class="text-lg">Unstable Income</p>
+                </div>
+                <div class="w-2/3 pl-4">
+                    <h3 class="text-[#d8b4fe] mb-6">Key Insights</h3>
+                    <ul class="space-y-4">
+                        <li>Usually checks price first before buying.</li>
+                        <li>Small purchases and subscriptions accumulate unnoticed.</li>
+                        <li><span class="text-white font-medium">Seeing work hours would make him think more before
+                                buying.</span></li>
+                        <li>Tool must remain simple and not stressful.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 12 -->
+        <div class="slide">
+            <h1 class="giant-header">PERSONAS</h1>
+        </div>
+
+        <!-- Slide 13 -->
+        <div class="slide">
+            <div class="two-col w-full max-w-7xl mx-auto items-stretch">
+
+                <!-- Persona 1 -->
+                <div class="glass-card flex flex-col h-full">
+                    <div class="flex items-center gap-6 mb-8 border-b border-white/10 pb-6">
+                        <div class="w-20 h-20 rounded-full bg-purple-900/50 flex items-center justify-center text-3xl">
+                            👨🏽‍🎨</div>
+                        <div class="text-left">
+                            <h3 class="text-3xl text-white mb-1">Alex, 26</h3>
+                            <p class="text-[#8b5cf6] font-medium text-xl m-0">Junior UI Designer</p>
+                        </div>
+                    </div>
+                    <div class="text-left mb-8 flex-1">
+                        <h4 class="text-xl text-white font-semibold mb-4 uppercase tracking-wider text-sm opacity-50">
+                            Goals</h4>
+                        <ul class="text-lg space-y-2 mb-0">
+                            <li>Understand real cost in work hours</li>
+                            <li>Make rational decisions</li>
+                            <li>Reduce regret</li>
+                        </ul>
+                    </div>
+                    <div class="text-left bg-red-500/10 p-6 rounded-2xl border border-red-500/20">
+                        <h4 class="text-xl text-red-300 font-semibold mb-3 uppercase tracking-wider text-sm">Pain Points
+                        </h4>
+                        <ul class="text-lg space-y-2 text-red-200/80 mb-0 m-0 pl-4">
+                            <li>Price feels abstract</li>
+                            <li>Hard to judge worth</li>
+                            <li>Small expenses accumulate unnoticed</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Persona 2 -->
+                <div class="glass-card flex flex-col h-full">
+                    <div class="flex items-center gap-6 mb-8 border-b border-white/10 pb-6">
+                        <div class="w-20 h-20 rounded-full bg-blue-900/50 flex items-center justify-center text-3xl">
+                            👩🏻‍🎓</div>
+                        <div class="text-left">
+                            <h3 class="text-3xl text-white mb-1">Michelle, 21</h3>
+                            <p class="text-[#3b82f6] font-medium text-xl m-0">University Student (Part-time)</p>
+                        </div>
+                    </div>
+                    <div class="text-left mb-8 flex-1">
+                        <h4 class="text-xl text-white font-semibold mb-4 uppercase tracking-wider text-sm opacity-50">
+                            Goals</h4>
+                        <ul class="text-lg space-y-2 mb-0">
+                            <li>Quickly understand work-time cost</li>
+                            <li>Reduce impulse spending</li>
+                            <li>Build money-labor awareness</li>
+                        </ul>
+                    </div>
+                    <div class="text-left bg-red-500/10 p-6 rounded-2xl border border-red-500/20">
+                        <h4 class="text-xl text-red-300 font-semibold mb-3 uppercase tracking-wider text-sm">Pain Points
+                        </h4>
+                        <ul class="text-lg space-y-2 text-red-200/80 mb-0 m-0 pl-4">
+                            <li>Cannot translate price into work hours</li>
+                            <li>Income instability</li>
+                            <li>Traditional finance tools feel complicated</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Slide 14 -->
+        <div class="slide">
+            <h1 class="giant-header">PROTOTYPE<br>STRUCTURE</h1>
+            <div class="flex gap-12 items-center justify-center mt-8 w-full max-w-7xl">
+                <div class="glass-card flex-1">
+                    <h3 class="text-[#d8b4fe]">Core Screens</h3>
+                    <div class="flex justify-between items-center mt-12 mb-8 px-8">
+                        <div class="flex flex-col items-center gap-4">
+                            <div
+                                class="w-24 h-24 rounded-2xl bg-surface border border-white/20 flex items-center justify-center text-3xl shadow-lg">
+                                💰</div>
+                            <p class="font-medium text-white">Wage Input</p>
+                        </div>
+                        <div class="h-1 flex-1 bg-gradient-to-r from-[#8b5cf6]/20 to-[#8b5cf6]/80 mx-4"></div>
+                        <div class="flex flex-col items-center gap-4">
+                            <div
+                                class="w-24 h-24 rounded-2xl bg-surface border border-white/20 flex items-center justify-center text-3xl shadow-lg">
+                                🧮</div>
+                            <p class="font-medium text-white">Cost Calc.</p>
+                        </div>
+                        <div class="h-1 flex-1 bg-gradient-to-r from-[#8b5cf6]/80 to-[#d8b4fe] mx-4"></div>
+                        <div class="flex flex-col items-center gap-4">
+                            <div
+                                class="w-24 h-24 rounded-2xl bg-surface border border-white/20 flex items-center justify-center text-3xl shadow-lg">
+                                ⏳</div>
+                            <p class="font-medium text-white">Time Result</p>
+                        </div>
+                        <div
+                            class="h-1 w-12 bg-[#d8b4fe] mx-4 rounded-r-full border-r-[8px] border-[transparent] border-l-[#d8b4fe]">
+                        </div>
+                        <div class="flex flex-col items-center gap-4">
+                            <div
+                                class="w-28 h-28 rounded-2xl bg-[#8b5cf6]/20 border border-[#8b5cf6] flex items-center justify-center text-4xl shadow-xl shadow-purple-500/20">
+                                💭</div>
+                            <p class="font-bold text-[#d8b4fe]">Reflection</p>
+                        </div>
+                    </div>
+                    <p class="text-sm italic mt-8 text-center">(Architecture derived from IA Map and User Flow)</p>
+                </div>
+                <div class="flex gap-6 items-end">
+                    <div class="phone-frame phone-frame-sm -rotate-3 hover:rotate-0 transition-transform duration-700">
+                        <div class="dynamic-island"></div>
+                        <img src="/ShoppingList.png" alt="Shopping List Screen" />
+                    </div>
+                    <div
+                        class="phone-frame phone-frame-sm rotate-2 hover:rotate-0 transition-transform duration-700 -ml-4 mt-8">
+                        <div class="dynamic-island"></div>
+                        <img src="/Buger.png" alt="Product Cost Screen" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 15 -->
+        <div class="slide">
+            <h1 class="giant-header">SUCCESS<br>METRICS</h1>
+            <p class="mt-8">To ensure measurable evaluation, I defined three categories:</p>
+        </div>
+
+        <!-- Slide 16 -->
+        <div class="slide left">
+            <h2>Success Criteria</h2>
+
+            <div class="flex gap-12 items-center w-full max-w-7xl">
+                <div class="space-y-6 flex-1">
+                    <!-- Metric 1 -->
+                    <div class="glass-card p-6 flex items-start gap-8">
+                        <div
+                            class="shrink-0 w-16 h-16 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-2xl font-bold border border-blue-500/50">
+                            1</div>
+                        <div>
+                            <h3 class="text-white mb-2 text-2xl">Usability Success</h3>
+                            <p class="text-lg italic text-[#94a3b8] mb-4">Users must complete wage-to-time conversion
+                                quickly & independently.</p>
+                            <div class="flex gap-6 flex-wrap">
+                                <span
+                                    class="px-4 py-2 rounded-lg bg-white/5 border border-white/10 font-mono text-sm">Task
+                                    Completion >= 90%</span>
+                                <span
+                                    class="px-4 py-2 rounded-lg bg-white/5 border border-white/10 font-mono text-sm">Time
+                                    On Task <= 30s</span>
+                                        <span
+                                            class="px-4 py-2 rounded-lg bg-white/5 border border-white/10 font-mono text-sm">No
+                                            Guidance Needed</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Metric 2 -->
+                    <div class="glass-card p-6 flex items-start gap-8">
+                        <div
+                            class="shrink-0 w-16 h-16 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-2xl font-bold border border-purple-500/50">
+                            2</div>
+                        <div>
+                            <h3 class="text-white mb-2 text-2xl">Comprehension Success</h3>
+                            <p class="text-lg italic text-[#94a3b8] mb-4">Users must clearly understand that "4 hours"
+                                equals real labor required.</p>
+                            <div class="flex gap-6 flex-wrap">
+                                <span
+                                    class="px-4 py-2 rounded-lg bg-white/5 border border-white/10 font-mono text-sm">Correct
+                                    Explanation >= 90%</span>
+                                <span
+                                    class="px-4 py-2 rounded-lg bg-white/5 border border-white/10 font-mono text-sm">Meaningfulness
+                                    >= 4/5</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Metric 3 -->
+                    <div class="glass-card p-6 flex items-start gap-8">
+                        <div
+                            class="shrink-0 w-16 h-16 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-2xl font-bold border border-green-500/50">
+                            3</div>
+                        <div>
+                            <h3 class="text-white mb-2 text-2xl">Behavioral Influence</h3>
+                            <p class="text-lg italic text-[#94a3b8] mb-4">At least half of users indicate the conversion
+                                changed their thinking.</p>
+                            <div class="flex gap-6 flex-wrap">
+                                <span
+                                    class="px-4 py-2 rounded-lg bg-green-500/10 border border-green-500/20 text-green-300 font-mono text-sm">Reported
+                                    Reflection >= 50%</span>
+                                <span
+                                    class="px-4 py-2 rounded-lg bg-green-500/10 border border-green-500/20 text-green-300 font-mono text-sm">Decision
+                                    Pause Observed</span>
+                                <span
+                                    class="px-4 py-2 rounded-lg bg-green-500/10 border border-green-500/20 text-green-300 font-mono text-sm">Intentional
+                                    Spending >= 50%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="phone-frame phone-frame-md rotate-2 hover:rotate-0 transition-transform duration-700">
+                    <div class="dynamic-island"></div>
+                    <img src="/ListFunction.png" alt="List Function Screen" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 17 -->
+        <div class="slide">
+            <h2 class="giant-header !text-[4.5rem]">PROTOTYPE SUCCESS DEFINITION</h2>
+            <div class="glass-card w-full max-w-4xl text-left p-12 mt-8">
+                <h3 class="text-[#d8b4fe] mb-8">The prototype is successful if:</h3>
+                <ul class="text-2xl space-y-6 mb-12">
+                    <li>Users understand time conversion instantly.</li>
+                    <li>Users perceive time cost as more meaningful than dollar price.</li>
+                    <li>Users demonstrate hesitation or reflection before purchasing.</li>
+                </ul>
+                <div class="p-6 bg-slate-800/50 rounded-2xl border-l-4 border-[#8b5cf6]">
+                    <p class="text-xl m-0 text-white italic">"Success is not defined by stopping purchases — It is
+                        defined by increasing conscious decision-making."</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 18 -->
+        <div class="slide">
+            <h2 class="giant-header !text-[4.5rem] !mb-12">PROPOSAL STATEMENT</h2>
+            <div class="glass-card p-12 w-full max-w-5xl relative">
+                <div class="absolute -top-8 -left-8 text-8xl opacity-10 font-serif">"</div>
+                <p class="text-4xl leading-relaxed text-white m-0 tracking-wide font-light">
+                    I am designing a mobile application that will allow <span class="highlight font-semibold">hourly
+                        wage earners and students</span> to convert product prices into <span
+                        class="highlight font-semibold">working hours</span> at the moment of purchase. By visualizing
+                    cost in time rather than money, users will <span class="highlight font-semibold">increase
+                        reflection</span> and make more intentional spending decisions before completing a purchase.
+                </p>
+                <div class="absolute -bottom-16 -right-8 text-8xl opacity-10 font-serif">"</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Navigation Controls -->
+    <div class="controls items-center">
+        <!-- Font Scale Controls -->
+        <div class="flex items-center space-x-1 mr-4 border-r border-white/20 pr-4">
+            <button id="btnFontSmall" class="text-sm px-2 text-white/50 hover:text-white transition-colors"
+                title="Small Text">A-</button>
+            <button id="btnFontMedium" class="text-base px-2 text-white/80 hover:text-white transition-colors"
+                title="Medium Text">A</button>
+            <button id="btnFontLarge" class="text-lg px-2 text-white/50 hover:text-white transition-colors font-bold"
+                title="Large Text">A+</button>
+        </div>
+
+        <!-- Slide Controls -->
+        <button id="prevBtn" disabled>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 18l-6-6 6-6" />
+            </svg>
+        </button>
+        <span id="slideCounter" class="text-white font-mono flex items-center px-4">1 / 18</span>
+        <button id="nextBtn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18l6-6-6-6" />
+            </svg>
+        </button>
+    </div>
+
+    <script>
+        // Slide Navigation Logic
+        const slides = document.querySelectorAll('.slide');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const counter = document.getElementById('slideCounter');
+        const progressBar = document.getElementById('progressBar');
+
+        // Font Scale Logic
+        const htmlElement = document.documentElement;
+        const btnFontSmall = document.getElementById('btnFontSmall');
+        const btnFontMedium = document.getElementById('btnFontMedium');
+        const btnFontLarge = document.getElementById('btnFontLarge');
+
+        function updateFontScaleButtons(activeBtn) {
+            [btnFontSmall, btnFontMedium, btnFontLarge].forEach(btn => {
+                btn.classList.remove('text-white', 'text-white/80');
+                btn.classList.add('text-white/50');
+            });
+            activeBtn.classList.remove('text-white/50');
+            activeBtn.classList.add('text-white');
+        }
+
+        btnFontSmall.addEventListener('click', () => {
+            htmlElement.classList.remove('font-medium', 'font-large');
+            htmlElement.classList.add('font-small');
+            updateFontScaleButtons(btnFontSmall);
+        });
+
+        btnFontMedium.addEventListener('click', () => {
+            htmlElement.classList.remove('font-small', 'font-large');
+            htmlElement.classList.add('font-medium');
+            updateFontScaleButtons(btnFontMedium);
+        });
+
+        btnFontLarge.addEventListener('click', () => {
+            htmlElement.classList.remove('font-small', 'font-medium');
+            htmlElement.classList.add('font-large');
+            updateFontScaleButtons(btnFontLarge);
+        });
+
+        // Initialize default font state
+        htmlElement.classList.add('font-medium');
+        updateFontScaleButtons(btnFontMedium);
+
+        let currentSlide = 0;
+        const totalSlides = slides.length;
+
+        function updateSlides() {
+            slides.forEach((slide, index) => {
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+
+            prevBtn.disabled = currentSlide === 0;
+            nextBtn.disabled = currentSlide === totalSlides - 1;
+            counter.textContent = `${currentSlide + 1} / ${totalSlides}`;
+
+            // Update progress bar
+            const progress = ((currentSlide + 1) / totalSlides) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlides();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+                updateSlides();
+            }
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'Space' || e.key === 'Enter') {
+                if (currentSlide < totalSlides - 1) {
+                    currentSlide++;
+                    updateSlides();
+                }
+            } else if (e.key === 'ArrowLeft') {
+                if (currentSlide > 0) {
+                    currentSlide--;
+                    updateSlides();
+                }
+            }
+        });
+
+        // Initialize display
+        updateSlides();
+
+        // Chart.js Configuration
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = "'Geist', sans-serif";
+
+        // Chart 1: Before Thinking About Time Cost
+        const ctx1 = document.getElementById('chart1').getContext('2d');
+        new Chart(ctx1, {
+            type: 'doughnut',
+            data: {
+                labels: ['Never', 'Rarely', 'Sometimes'],
+                datasets: [{
+                    data: [20, 60, 20],
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.8)',   // Red
+                        'rgba(249, 115, 22, 0.8)',  // Orange
+                        'rgba(34, 197, 94, 0.8)'    // Green
+                    ],
+                    borderColor: '#1e293b',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 20 } }
+                },
+                cutout: '70%'
+            }
+        });
+
+        // Chart 2: Interest
+        const ctx2 = document.getElementById('chart2').getContext('2d');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: ['Interested', 'Very Interested', 'Slightly Interested'],
+                datasets: [{
+                    label: 'Percentage of Users',
+                    data: [60, 20, 20],
+                    backgroundColor: 'rgba(139, 92, 246, 0.8)', // Purple
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.1)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // Chart 3: Most Useful
+        const ctx3 = document.getElementById('chart3').getContext('2d');
+        new Chart(ctx3, {
+            type: 'pie',
+            data: {
+                labels: ['Large/Occasional Purchases', 'Clothing/Personal Items'],
+                datasets: [{
+                    data: [80, 20],
+                    backgroundColor: [
+                        'rgba(139, 92, 246, 0.8)', // Purple
+                        'rgba(59, 130, 246, 0.8)'  // Blue
+                    ],
+                    borderColor: '#1e293b',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 20 } }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
