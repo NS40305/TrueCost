@@ -69,15 +69,15 @@ export default function CallToAction() {
                             <div className="w-[120px] h-[24px] bg-foreground rounded-b-3xl"></div>
                         </div>
 
-                        {/* Placeholder for real screenshot */}
-                        <div className="absolute inset-0 bg-surface flex flex-col items-center justify-center text-center p-6 border border-border/50">
-                            <p className="text-sm text-foreground/40 font-medium mb-2">Mobile Mockup Area</p>
-                            <p className="text-[10px] text-foreground/30">
-                                Replace this div with an actual 📱 mobile screenshot of the TrueCost app.
-                            </p>
-                            {/* Example Image Setup:
-                            <Image src="/truecost-screenshot.png" alt="TrueCost App Preview" fill className="object-cover" />
-                            */}
+                        {/* Mockup Screenshot */}
+                        <div className="absolute inset-0 bg-surface">
+                            <Image
+                                src="/mockup.png"
+                                alt="TrueCost App Preview"
+                                fill
+                                className="object-cover"
+                                priority
+                            />
                         </div>
                     </div>
 
