@@ -33,7 +33,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning translate="no">
       <head>
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192.png" />
         <script
