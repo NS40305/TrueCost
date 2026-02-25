@@ -200,8 +200,11 @@ button:disabled {
 
 .phone-frame .phone-screen {
     position: absolute;
-    inset: 1.8%;
-    border-radius: 15% / 7%;
+    top: 2%;
+    left: 5%;
+    right: 5%;
+    bottom: 2%;
+    border-radius: 7% / 3.5%;
     overflow: hidden;
     z-index: 1;
 }
