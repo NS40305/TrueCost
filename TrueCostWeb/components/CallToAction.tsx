@@ -28,7 +28,7 @@ export default function CallToAction() {
 
                     <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                         <a
-                            href="http://localhost:3000"
+                            href="https://true-cost-q8cb.vercel.app/"
                             target="_blank"
                             className="group flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 bg-foreground text-background font-semibold rounded-2xl hover:scale-105 transition-all shadow-xl"
                         >
@@ -37,7 +37,7 @@ export default function CallToAction() {
                         </a>
 
                         <a
-                            href="http://localhost:3000/list"
+                            href="https://true-cost-q8cb.vercel.app/list"
                             target="_blank"
                             className="group flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 bg-surface/80 border border-border text-foreground font-semibold rounded-2xl hover:bg-surface hover:scale-105 transition-all backdrop-blur-md"
                         >
