@@ -67,8 +67,6 @@ export default function CallToAction() {
                         {/* Dynamic Island */}
                         <div className="absolute top-2 w-full z-20 flex justify-center pointer-events-none">
                             <div className="w-[100px] h-[30px] bg-black rounded-full flex items-center justify-between px-2">
-                                {/* Camera lens dot */}
-                                <div className="absolute right-3 w-3.5 h-3.5 bg-zinc-800/80 rounded-full border border-zinc-700/50"></div>
                             </div>
                         </div>
 
