@@ -6,7 +6,7 @@ export default function TopBar() {
     const setDrawerOpen = useStore((s) => s.setDrawerOpen);
 
     return (
-        <header className="sticky top-0 z-30 flex items-center justify-between px-4 h-14 bg-surface border-b border-border">
+        <header className="fixed top-0 left-0 right-0 w-full z-40 flex items-center justify-between px-4 h-14 bg-surface/90 backdrop-blur-lg border-b border-border">
             {/* Hamburger */}
             <button
                 onClick={() => setDrawerOpen(true)}

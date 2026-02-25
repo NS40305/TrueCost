@@ -30,7 +30,7 @@ export default function ClientShell({ children }: { children: ReactNode }) {
             <TopBar />
             {hydrated && <Drawer />}
             <InstallPrompt />
-            <main className="min-h-[calc(100vh-3.5rem)]">
+            <main className="min-h-screen pt-14">
                 {hydrated ? children : (
                     <div className="flex items-center justify-center min-h-[50vh]">
                         <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
