@@ -67,7 +67,7 @@ export default function CalculatorPage() {
     const newUrl = e.target.value;
     setUrl(newUrl);
 
-    if (newUrl.includes('amazon.')) {
+    if (newUrl.includes('amazon.') || newUrl.includes('a.co') || newUrl.includes('amzn.to')) {
       setIsScraping(true);
       try {
         const res = await fetch('/api/scrape', {

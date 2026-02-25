@@ -5,7 +5,7 @@ export async function POST(req: Request) {
     try {
         const { url } = await req.json();
 
-        if (!url || !url.includes('amazon.')) {
+        if (!url || (!url.includes('amazon.') && !url.includes('a.co') && !url.includes('amzn.to'))) {
             return NextResponse.json({ error: 'Invalid Amazon URL' }, { status: 400 });
         }
 
