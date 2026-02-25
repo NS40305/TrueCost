@@ -63,10 +63,13 @@ export default function CallToAction() {
                     transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
                     className="flex-1 w-full max-w-sm relative group perspective-[1000px]"
                 >
-                    <div className="relative w-full aspect-[9/19] rounded-[3rem] border-[8px] border-foreground bg-background shadow-2xl overflow-hidden transition-transform duration-700 ease-out group-hover:rotate-0 group-hover:scale-105">
-                        {/* Status bar mockup */}
-                        <div className="absolute top-0 w-full h-7 bg-transparent z-20 flex justify-center">
-                            <div className="w-[120px] h-[24px] bg-foreground rounded-b-3xl"></div>
+                    <div className="relative w-full aspect-[9/19.5] rounded-[3.5rem] border-[6px] border-zinc-800 bg-black shadow-2xl overflow-hidden shadow-zinc-900/50 transition-transform duration-700 ease-out group-hover:rotate-0 group-hover:scale-[1.03]">
+                        {/* Dynamic Island */}
+                        <div className="absolute top-2 w-full z-20 flex justify-center pointer-events-none">
+                            <div className="w-[100px] h-[30px] bg-black rounded-full flex items-center justify-between px-2">
+                                {/* Camera lens dot */}
+                                <div className="absolute right-3 w-3.5 h-3.5 bg-zinc-800/80 rounded-full border border-zinc-700/50"></div>
+                            </div>
                         </div>
 
                         {/* Mockup Screenshot */}
