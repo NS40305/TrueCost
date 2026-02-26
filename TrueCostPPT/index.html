@@ -17,14 +17,18 @@
 
         <!-- Slide 1 -->
         <div class="slide">
-            <div class="flex items-center justify-center gap-20 w-full">
-                <div class="text-center">
-                    <h1>TRUECOST</h1>
-                    <h3>Is This Worth My Time?</h3>
+            <div class="grid w-full h-full" style="grid-template-columns: 1fr 2fr;">
+                <div class="flex flex-col items-center justify-center text-center">
+                    <h1 class="giant-header" style="font-size: 6rem; margin-bottom: 0.5rem;">TRUECOST</h1>
+                    <h3 class="text-[#94a3b8]"
+                        style="font-size: 1.4rem; letter-spacing: 0.15em; text-transform: uppercase;">Is This Worth My
+                        Time?</h3>
                 </div>
-                <div class="phone-frame phone-frame-lg -rotate-3 hover:rotate-0 transition-transform duration-700">
-                    <div class="phone-screen"><img src="/mockup.png" alt="TrueCost App Preview" /></div>
-                    <div class="phone-overlay"><img src="/Phone.png" alt="" /></div>
+                <div class="flex items-center justify-center">
+                    <div class="phone-frame phone-frame-lg -rotate-3 hover:rotate-0 transition-transform duration-700">
+                        <div class="phone-screen"><img src="/mockup.png" alt="TrueCost App Preview" /></div>
+                        <div class="phone-overlay"><img src="/Phone.png" alt="" /></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -498,16 +502,6 @@
 
     <!-- Navigation Controls -->
     <div class="controls items-center">
-        <!-- Font Scale Controls -->
-        <div class="flex items-center space-x-1 mr-4 border-r border-white/20 pr-4">
-            <button id="btnFontSmall" class="text-sm px-2 text-white/50 hover:text-white transition-colors"
-                title="Small Text">A-</button>
-            <button id="btnFontMedium" class="text-base px-2 text-white/80 hover:text-white transition-colors"
-                title="Medium Text">A</button>
-            <button id="btnFontLarge" class="text-lg px-2 text-white/50 hover:text-white transition-colors font-bold"
-                title="Large Text">A+</button>
-        </div>
-
         <!-- Slide Controls -->
         <button id="prevBtn" disabled>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -532,42 +526,6 @@
         const counter = document.getElementById('slideCounter');
         const progressBar = document.getElementById('progressBar');
 
-        // Font Scale Logic
-        const htmlElement = document.documentElement;
-        const btnFontSmall = document.getElementById('btnFontSmall');
-        const btnFontMedium = document.getElementById('btnFontMedium');
-        const btnFontLarge = document.getElementById('btnFontLarge');
-
-        function updateFontScaleButtons(activeBtn) {
-            [btnFontSmall, btnFontMedium, btnFontLarge].forEach(btn => {
-                btn.classList.remove('text-white', 'text-white/80');
-                btn.classList.add('text-white/50');
-            });
-            activeBtn.classList.remove('text-white/50');
-            activeBtn.classList.add('text-white');
-        }
-
-        btnFontSmall.addEventListener('click', () => {
-            htmlElement.classList.remove('font-medium', 'font-large');
-            htmlElement.classList.add('font-small');
-            updateFontScaleButtons(btnFontSmall);
-        });
-
-        btnFontMedium.addEventListener('click', () => {
-            htmlElement.classList.remove('font-small', 'font-large');
-            htmlElement.classList.add('font-medium');
-            updateFontScaleButtons(btnFontMedium);
-        });
-
-        btnFontLarge.addEventListener('click', () => {
-            htmlElement.classList.remove('font-small', 'font-medium');
-            htmlElement.classList.add('font-large');
-            updateFontScaleButtons(btnFontLarge);
-        });
-
-        // Initialize default font state
-        htmlElement.classList.add('font-medium');
-        updateFontScaleButtons(btnFontMedium);
 
         let currentSlide = 0;
         const totalSlides = slides.length;
@@ -626,81 +584,160 @@
         Chart.defaults.color = '#94a3b8';
         Chart.defaults.font.family = "'Geist', sans-serif";
 
-        // Chart 1: Before Thinking About Time Cost
-        const ctx1 = document.getElementById('chart1').getContext('2d');
-        new Chart(ctx1, {
-            type: 'doughnut',
-            data: {
-                labels: ['Never', 'Rarely', 'Sometimes'],
-                datasets: [{
-                    data: [20, 60, 20],
-                    backgroundColor: [
-                        'rgba(239, 68, 68, 0.8)',   // Red
-                        'rgba(249, 115, 22, 0.8)',  // Orange
-                        'rgba(34, 197, 94, 0.8)'    // Green
-                    ],
-                    borderColor: '#1e293b',
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 20 } }
+        // Store chart instances for re-animation
+        let chart1Instance, chart2Instance, chart3Instance;
+
+        // Map: which slide index has which charts
+        // Slide 3 (index 2) -> chart1 (doughnut)
+        // Slide 10 (index 9) -> chart2 (bar), chart3 (pie)
+        const chartSlideMap = {};
+
+        function getSlideIndexForElement(id) {
+            const el = document.getElementById(id);
+            const slide = el.closest('.slide');
+            return Array.from(slides).indexOf(slide);
+        }
+
+        // Build chart-to-slide mapping after DOM is ready
+        chartSlideMap[getSlideIndexForElement('chart1')] = ['chart1'];
+        const chart2Slide = getSlideIndexForElement('chart2');
+        if (!chartSlideMap[chart2Slide]) chartSlideMap[chart2Slide] = [];
+        chartSlideMap[chart2Slide].push('chart2');
+        const chart3Slide = getSlideIndexForElement('chart3');
+        if (!chartSlideMap[chart3Slide]) chartSlideMap[chart3Slide] = [];
+        chartSlideMap[chart3Slide].push('chart3');
+
+        // Create charts (initially hidden, will animate on slide enter)
+        function createCharts() {
+            // Chart 1: Doughnut — counter-clockwise rotation
+            const ctx1 = document.getElementById('chart1').getContext('2d');
+            chart1Instance = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Never', 'Rarely', 'Sometimes'],
+                    datasets: [{
+                        data: [20, 60, 20],
+                        backgroundColor: [
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(249, 115, 22, 0.8)',
+                            'rgba(34, 197, 94, 0.8)'
+                        ],
+                        borderColor: '#1e293b',
+                        borderWidth: 2
+                    }]
                 },
-                cutout: '70%'
-            }
-        });
-
-        // Chart 2: Interest
-        const ctx2 = document.getElementById('chart2').getContext('2d');
-        new Chart(ctx2, {
-            type: 'bar',
-            data: {
-                labels: ['Interested', 'Very Interested', 'Slightly Interested'],
-                datasets: [{
-                    label: 'Percentage of Users',
-                    data: [60, 20, 20],
-                    backgroundColor: 'rgba(139, 92, 246, 0.8)', // Purple
-                    borderRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.1)' } },
-                    x: { grid: { display: false } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        animateRotate: true,
+                        duration: 1200,
+                        easing: 'easeOutQuart'
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 20 } }
+                    },
+                    rotation: -360,
+                    cutout: '70%'
                 }
-            }
-        });
+            });
 
-        // Chart 3: Most Useful
-        const ctx3 = document.getElementById('chart3').getContext('2d');
-        new Chart(ctx3, {
-            type: 'pie',
-            data: {
-                labels: ['Large/Occasional Purchases', 'Clothing/Personal Items'],
-                datasets: [{
-                    data: [80, 20],
-                    backgroundColor: [
-                        'rgba(139, 92, 246, 0.8)', // Purple
-                        'rgba(59, 130, 246, 0.8)'  // Blue
-                    ],
-                    borderColor: '#1e293b',
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 20 } }
+            // Chart 2: Bar — grow from bottom
+            const ctx2 = document.getElementById('chart2').getContext('2d');
+            chart2Instance = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['Interested', 'Very Interested', 'Slightly Interested'],
+                    datasets: [{
+                        label: 'Percentage of Users',
+                        data: [60, 20, 20],
+                        backgroundColor: 'rgba(139, 92, 246, 0.8)',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1200,
+                        easing: 'easeOutQuart',
+                        delay: (context) => {
+                            return context.dataIndex * 200;
+                        }
+                    },
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        x: { grid: { display: false } }
+                    }
                 }
-            }
-        });
+            });
+
+            // Chart 3: Pie — counter-clockwise rotation
+            const ctx3 = document.getElementById('chart3').getContext('2d');
+            chart3Instance = new Chart(ctx3, {
+                type: 'pie',
+                data: {
+                    labels: ['Large/Occasional Purchases', 'Clothing/Personal Items'],
+                    datasets: [{
+                        data: [80, 20],
+                        backgroundColor: [
+                            'rgba(139, 92, 246, 0.8)',
+                            'rgba(59, 130, 246, 0.8)'
+                        ],
+                        borderColor: '#1e293b',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        animateRotate: true,
+                        duration: 1200,
+                        easing: 'easeOutQuart'
+                    },
+                    rotation: -360,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 20 } }
+                    }
+                }
+            });
+        }
+
+        createCharts();
+
+        // Re-animate charts when their slide becomes active
+        function animateChartsForSlide(slideIndex) {
+            const chartIds = chartSlideMap[slideIndex];
+            if (!chartIds) return;
+
+            chartIds.forEach(id => {
+                let instance;
+                if (id === 'chart1') instance = chart1Instance;
+                else if (id === 'chart2') instance = chart2Instance;
+                else if (id === 'chart3') instance = chart3Instance;
+
+                if (instance) {
+                    // Reset and replay animation
+                    instance.reset();
+                    instance.update();
+                }
+            });
+        }
+
+        // Patch updateSlides to trigger chart animations
+        const originalUpdateSlides = updateSlides;
+        updateSlides = function () {
+            originalUpdateSlides();
+            animateChartsForSlide(currentSlide);
+        };
+        // Re-run to animate any chart on the initial slide
+        updateSlides();
     </script>
 </body>
 

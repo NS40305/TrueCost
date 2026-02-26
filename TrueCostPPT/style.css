@@ -1,8 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap');
 
 html {
-    --font-scale: 1;
-    font-size: calc(16px * var(--font-scale));
+    font-size: 16px;
 }
 
 body {
@@ -28,10 +27,7 @@ body {
     filter: drop-shadow(0 0 40px rgba(139, 92, 246, 0.3));
 }
 
-/* Font scale utility classes */
-html.font-small { --font-scale: 0.8; }
-html.font-medium { --font-scale: 1; }
-html.font-large { --font-scale: 1.25; }
+
 
 .slide {
     display: none;
@@ -200,10 +196,10 @@ button:disabled {
 
 .phone-frame .phone-screen {
     position: absolute;
-    top: 2%;
+    top: 5%;
     left: 5%;
     right: 5%;
-    bottom: 2%;
+    bottom: 5%;
     border-radius: 7% / 3.5%;
     overflow: hidden;
     z-index: 1;
