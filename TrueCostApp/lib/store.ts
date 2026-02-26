@@ -24,6 +24,7 @@ export interface ShoppingItem {
     pinned?: boolean;
     completed?: boolean;
     completedAt?: number;
+    location?: 'list' | 'summary'; // New property to track explicit location
 }
 
 export interface SettingsState {
@@ -99,7 +100,7 @@ export const useStore = create<AppState>()(
                 set((s) => ({
                     items: [
                         ...s.items,
-                        { ...item, id: crypto.randomUUID(), addedAt: Date.now() },
+                        { ...item, id: crypto.randomUUID(), addedAt: Date.now(), location: 'list' },
                     ],
                 })),
             removeItem: (id) =>
@@ -118,6 +119,7 @@ export const useStore = create<AppState>()(
                                 ...i,
                                 completed: true,
                                 completedAt: dateMs ?? Date.now(),
+                                location: 'summary',
                             }
                             : i
                     ),
@@ -126,7 +128,7 @@ export const useStore = create<AppState>()(
                 set((s) => ({
                     items: s.items.map((i) =>
                         i.id === id
-                            ? { ...i, completed: false, completedAt: undefined }
+                            ? { ...i, completed: false, completedAt: undefined, location: 'list' }
                             : i
                     ),
                 })),

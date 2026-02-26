@@ -22,7 +22,7 @@ export default function ListPage() {
     const currencySymbol = CURRENCIES.find((c) => c.code === settings.currency)?.symbol || '$';
 
     const filtered = useMemo(() => {
-        let list = items.filter(i => !i.completed);
+        let list = items.filter(i => i.location === 'list' || (!i.location && !i.completed));
         if (filterCategory !== 'all') {
             list = list.filter((i) => i.category === filterCategory);
         }

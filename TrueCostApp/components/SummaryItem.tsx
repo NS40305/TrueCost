@@ -66,7 +66,7 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
             <div className={`absolute inset-y-0 left-0 flex w-full z-0 transition-opacity duration-200 ${dragDir === 'right' ? 'opacity-100' : 'opacity-0'} pointer-events-none`}>
                 <button
                     onClick={handleUndo}
-                    className="flex-1 flex items-center justify-start pl-4 text-white font-semibold text-sm bg-amber-500 hover:bg-amber-600 transition-colors pointer-events-auto"
+                    className={`flex-1 flex items-center justify-start pl-4 text-white font-semibold text-sm bg-amber-500 hover:bg-amber-600 transition-colors ${dragDir === 'right' ? 'pointer-events-auto' : 'pointer-events-none'}`}
                 >
                     <span className="flex flex-col items-center gap-1 w-[80px]">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -82,7 +82,7 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
             <div className={`absolute inset-y-0 right-0 flex w-full z-0 transition-opacity duration-200 ${dragDir === 'left' ? 'opacity-100' : 'opacity-0'} pointer-events-none`}>
                 <button
                     onClick={handleDelete}
-                    className="flex-1 flex items-center justify-end pr-4 text-white font-semibold text-sm bg-red-500 hover:bg-red-600 transition-colors pointer-events-auto"
+                    className={`flex-1 flex items-center justify-end pr-4 text-white font-semibold text-sm bg-red-500 hover:bg-red-600 transition-colors ${dragDir === 'left' ? 'pointer-events-auto' : 'pointer-events-none'}`}
                 >
                     <span className="flex flex-col items-center gap-1 w-[80px]">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

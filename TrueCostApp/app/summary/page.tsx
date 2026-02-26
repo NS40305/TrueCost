@@ -24,7 +24,7 @@ export default function SummaryPage() {
     const [sortMode, setSortMode] = useState<'date' | 'price'>('date');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
 
-    const completedItems = useMemo(() => items.filter(i => i.completed), [items]);
+    const completedItems = useMemo(() => items.filter(i => i.location === 'summary' || (!i.location && i.completed)), [items]);
 
     const filteredItems = useMemo(() => {
         let list = completedItems.filter(item => {
