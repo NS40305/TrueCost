@@ -75,6 +75,7 @@ export default function ResultCards({ itemName, result }: ResultCardsProps) {
                             value={result[card.key]}
                             className={`text-2xl font-bold tabular-nums ${card.textColor}`}
                             animationDuration={0.6}
+                            formatFn={card.format}
                         />
                         <span className="text-xs text-muted uppercase tracking-wider font-medium">
                             {card.label}

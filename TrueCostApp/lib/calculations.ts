@@ -46,15 +46,15 @@ export function getTimeNeeded(price: number, settings: Settings): TimeResult {
 }
 
 export function formatHours(value: number): string {
-    return value.toFixed(2);
+    return Number(value.toFixed(2)).toString();
 }
 
 export function formatDays(value: number): string {
-    return value.toFixed(2);
+    return Number(value.toFixed(2)).toString();
 }
 
 export function formatYears(value: number): string {
-    return value.toFixed(3);
+    return Number(value.toFixed(3)).toString();
 }
 
 export function getMonthlyIncome(settings: Settings): number {

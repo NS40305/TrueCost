@@ -7,12 +7,14 @@ interface NumberTickerProps {
     value: number | string;
     className?: string;
     animationDuration?: number;
+    formatFn?: (val: number) => string;
 }
 
 export default function NumberTicker({
     value,
     className = "",
     animationDuration = 0.5,
+    formatFn,
 }: NumberTickerProps) {
     const rawValue = typeof value === 'string' ? parseFloat(value.replace(/,/g, '')) : value;
     const isError = isNaN(rawValue);
@@ -45,6 +47,7 @@ export default function NumberTicker({
     // val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     const displayValue = useTransform(springValue, (current) => {
         if (isError) return String(value);
+        if (formatFn) return formatFn(current);
         return current.toLocaleString('en-US', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
