@@ -49,6 +49,7 @@ export interface AppState {
     removeItem: (id: string) => void;
     togglePin: (id: string) => void;
     completeItem: (id: string, dateMs?: number) => void;
+    uncompleteItem: (id: string) => void;
     clearItems: () => void;
 
     /* ui */
@@ -118,6 +119,14 @@ export const useStore = create<AppState>()(
                                 completed: true,
                                 completedAt: dateMs ?? Date.now(),
                             }
+                            : i
+                    ),
+                })),
+            uncompleteItem: (id) =>
+                set((s) => ({
+                    items: s.items.map((i) =>
+                        i.id === id
+                            ? { ...i, completed: false, completedAt: undefined }
                             : i
                     ),
                 })),

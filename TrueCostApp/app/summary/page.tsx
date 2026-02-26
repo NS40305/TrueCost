@@ -6,6 +6,7 @@ import { getTimeNeeded, formatHours } from '@/lib/calculations';
 import { CURRENCIES } from '@/lib/constants';
 import { t } from '@/lib/i18n';
 import SegmentedControl from '@/components/SegmentedControl';
+import SummaryItem from '@/components/SummaryItem';
 
 type ReportMode = 'monthly' | 'yearly';
 
@@ -140,10 +141,7 @@ export default function SummaryPage() {
                     </div>
                 ) : (
                     filteredItems.map(item => {
-                        const time = getTimeNeeded(item.price, settings);
                         const completionDate = new Date(item.completedAt || item.addedAt);
-
-                        // Always show day/month, and year if it doesn't match current year or if we are in yearly mode
                         const dateLabel = completionDate.toLocaleDateString(language === 'en' ? 'en-US' : language, {
                             month: 'short',
                             day: 'numeric',
@@ -151,25 +149,7 @@ export default function SummaryPage() {
                         });
 
                         return (
-                            <div key={item.id} className="glass-card p-4 flex items-center gap-4 rounded-2xl bg-surface/50 opacity-80">
-                                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
-                                        <polyline points="20 6 9 17 4 12"></polyline>
-                                    </svg>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="font-semibold text-sm truncate">{item.name}</p>
-                                    <p className="text-xs text-muted mt-0.5">{item.category} • {dateLabel}</p>
-                                </div>
-                                <div className="text-right shrink-0">
-                                    <p className="font-bold text-sm tabular-nums line-through decoration-muted/50">
-                                        {currencySymbol}{item.price.toLocaleString()}
-                                    </p>
-                                    <p className="text-xs text-muted tabular-nums">
-                                        {formatHours(time.hours)} {T('hrs')}
-                                    </p>
-                                </div>
-                            </div>
+                            <SummaryItem key={item.id} item={item} dateLabel={dateLabel} />
                         );
                     })
                 )}
