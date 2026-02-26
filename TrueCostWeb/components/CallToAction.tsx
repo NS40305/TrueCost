@@ -63,21 +63,24 @@ export default function CallToAction() {
                     transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
                     className="flex-1 w-full max-w-sm relative group perspective-[1000px]"
                 >
-                    <div className="relative w-full aspect-[9/19.5] rounded-[3.5rem] border-[6px] border-zinc-800 bg-black shadow-2xl overflow-hidden shadow-zinc-900/50 transition-transform duration-700 ease-out group-hover:rotate-0 group-hover:scale-[1.03]">
-                        {/* Dynamic Island */}
-                        <div className="absolute top-2 w-full z-20 flex justify-center pointer-events-none">
-                            <div className="w-[100px] h-[30px] bg-black rounded-full flex items-center justify-between px-2">
-                            </div>
-                        </div>
-
+                    <div className="relative w-full aspect-[9/19.5] transition-transform duration-700 ease-out group-hover:rotate-0 group-hover:scale-[1.03]">
                         {/* Mockup Screenshot */}
-                        <div className="absolute inset-0 bg-surface">
+                        <div className="absolute rounded-[7%/3.5%] overflow-hidden" style={{ top: '5%', left: '5%', right: '5%', bottom: '5%' }}>
                             <Image
                                 src="/mockup.png"
                                 alt="TrueCost App Preview"
                                 fill
                                 className="object-cover"
                                 priority
+                            />
+                        </div>
+                        {/* Phone.png Overlay Frame */}
+                        <div className="absolute inset-0 z-10 pointer-events-none">
+                            <Image
+                                src="/Phone.png"
+                                alt=""
+                                fill
+                                className="object-contain"
                             />
                         </div>
                     </div>

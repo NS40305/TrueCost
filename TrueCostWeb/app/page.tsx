@@ -3,6 +3,7 @@ import Reframe from '@/components/Reframe';
 import Personalization from '@/components/Personalization';
 import ComparisonGrid from '@/components/ComparisonGrid';
 import CallToAction from '@/components/CallToAction';
+import DarkModeToggle from '@/components/DarkModeToggle';
 
 export default function Home() {
   return (
@@ -12,6 +13,7 @@ export default function Home() {
       <Personalization />
       <ComparisonGrid />
       <CallToAction />
+      <DarkModeToggle />
     </main>
   );
 }
