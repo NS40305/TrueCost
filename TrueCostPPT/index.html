@@ -730,17 +730,22 @@
             const chartIds = chartSlideMap[slideIndex];
             if (!chartIds) return;
 
-            chartIds.forEach(id => {
-                let instance;
-                if (id === 'chart1') instance = chart1Instance;
-                else if (id === 'chart2') instance = chart2Instance;
-                else if (id === 'chart3') instance = chart3Instance;
+            // Wait for slide to be fully visible (display:flex) before animating
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    chartIds.forEach(id => {
+                        let instance;
+                        if (id === 'chart1') instance = chart1Instance;
+                        else if (id === 'chart2') instance = chart2Instance;
+                        else if (id === 'chart3') instance = chart3Instance;
 
-                if (instance) {
-                    // Reset and replay animation
-                    instance.reset();
-                    instance.update();
-                }
+                        if (instance) {
+                            instance.resize();   // Recalculate canvas size
+                            instance.reset();    // Reset to pre-animation state
+                            instance.update('active'); // Trigger animation
+                        }
+                    });
+                }, 50);
             });
         }
 
