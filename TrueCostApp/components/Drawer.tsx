@@ -208,10 +208,8 @@ export default function Drawer() {
                                 className="flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium text-muted hover:bg-surface-hover hover:text-foreground transition-colors"
                             >
                                 <span className="flex items-center gap-3">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M12 2v20z" />
-                                        <path d="M18.36 5.64a9 9 0 1 1-12.73 0" />
-                                        <path d="M12 2a10 10 0 0 0-10 10" />
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none" className={deepGreyMode ? "text-accent" : ""}>
+                                        <circle cx="12" cy="12" r="7" />
                                     </svg>
                                     Deep Grey
                                 </span>
