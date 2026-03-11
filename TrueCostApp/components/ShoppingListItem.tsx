@@ -25,12 +25,14 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
     const controls = useAnimation();
     const x = useMotionValue(0);
     const [isCompleting, setIsCompleting] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
+    const [dragDir, setDragDir] = useState<'left' | 'right' | null>(null);
     const ACTION_WIDTH_LEFT = 160;
     const ACTION_WIDTH_RIGHT = 100;
 
     useMotionValueEvent(x, "change", (latest) => {
-        setIsDragging(latest !== 0);
+        if (latest > 5) setDragDir('right');
+        else if (latest < -5) setDragDir('left');
+        else setDragDir(null);
     });
 
     const handleDragEnd = useCallback(async (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
@@ -67,11 +69,11 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
 
     return (
         <div className="relative overflow-hidden rounded-2xl bg-surface/50">
-            {/* Complete action button (left side) */}
-            <div className={`absolute inset-y-0 left-0 flex ${isCompleting ? 'w-full z-20' : 'w-[200px] z-0'} transition-opacity duration-200 ${isDragging || isCompleting ? 'opacity-100' : 'opacity-0'}`}>
+            {/* Complete action (left background — revealed on swipe right) */}
+            <div className={`absolute inset-y-0 left-0 flex ${isCompleting ? 'w-full z-20' : 'w-full z-0'} transition-opacity duration-200 ${dragDir === 'right' || isCompleting ? 'opacity-100' : 'opacity-0'} pointer-events-none`}>
                 <button
                     onClick={handleComplete}
-                    className="flex-1 flex items-center justify-start pl-4 text-white font-semibold text-sm bg-green-500 hover:bg-green-600 transition-colors cursor-pointer"
+                    className={`flex-1 flex items-center justify-start pl-4 text-white font-semibold text-sm bg-green-500 hover:bg-green-600 transition-colors cursor-pointer ${dragDir === 'right' || isCompleting ? 'pointer-events-auto' : 'pointer-events-none'}`}
                 >
                     <span className="flex flex-col items-center gap-1 w-[80px]">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -82,11 +84,11 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
                 </button>
             </div>
 
-            {/* Action buttons behind the card (right side) */}
-            <div className={`absolute inset-y-0 right-0 flex w-[160px] transition-opacity duration-200 ${isDragging ? 'opacity-100' : 'opacity-0'}`}>
+            {/* Pin + Delete actions (right background — revealed on swipe left) */}
+            <div className={`absolute inset-y-0 right-0 flex w-full z-0 transition-opacity duration-200 ${dragDir === 'left' ? 'opacity-100' : 'opacity-0'} pointer-events-none`}>
                 <button
                     onClick={handlePin}
-                    className="flex-1 flex items-center justify-end text-white font-semibold text-sm bg-blue-500 hover:bg-blue-600 transition-colors"
+                    className={`flex-1 flex items-center justify-end text-white font-semibold text-sm bg-blue-500 hover:bg-blue-600 transition-colors ${dragDir === 'left' ? 'pointer-events-auto' : 'pointer-events-none'}`}
                 >
                     <div className="w-[80px] flex flex-col items-center justify-center gap-1">
                         {item.pinned ? (
@@ -109,7 +111,7 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
                 </button>
                 <button
                     onClick={handleDelete}
-                    className="w-[80px] shrink-0 flex items-center justify-center text-white font-semibold text-sm bg-red-500 hover:bg-red-600 transition-colors"
+                    className={`w-[80px] shrink-0 flex items-center justify-center text-white font-semibold text-sm bg-red-500 hover:bg-red-600 transition-colors ${dragDir === 'left' ? 'pointer-events-auto' : 'pointer-events-none'}`}
                 >
                     <span className="flex flex-col items-center gap-1">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

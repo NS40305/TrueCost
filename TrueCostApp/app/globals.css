@@ -38,6 +38,18 @@
   --accent-hover: #6366f1;
 }
 
+/* ── Deep Grey mode ────────── */
+:root.deep-grey, .deep-grey {
+  --background: #18191a; 
+  --foreground: #e4e6eb; 
+  --surface: #242526; 
+  --surface-hover: #3a3b3c; 
+  --border-color: #3e4042; 
+  --muted: #b0b3b8; 
+  --accent: #818cf8;
+  --accent-hover: #6366f1;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

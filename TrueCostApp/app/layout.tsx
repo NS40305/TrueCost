@@ -44,7 +44,10 @@ export default function RootLayout({
             __html: `
               try {
                 const s = JSON.parse(localStorage.getItem('truecost-storage') || '{}');
-                if (s.state && s.state.darkMode !== false) document.documentElement.classList.add('dark');
+                if (s.state && s.state.darkMode !== false) {
+                  document.documentElement.classList.add('dark');
+                  if (s.state.deepGreyMode) document.documentElement.classList.add('deep-grey');
+                }
               } catch(e) { document.documentElement.classList.add('dark'); }
               try {
                 if ('serviceWorker' in navigator) {

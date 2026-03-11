@@ -11,6 +11,7 @@ export default function Drawer() {
     const {
         drawerOpen, setDrawerOpen,
         darkMode, toggleDarkMode,
+        deepGreyMode, toggleDeepGreyMode,
         language, setLanguage,
         exportData, importData, resetAll,
         loadDemoData,
@@ -198,6 +199,28 @@ export default function Drawer() {
                             </div>
                         </button>
                     </div>
+
+                    {/* Deep Grey toggle (only shown when in Dark Mode) */}
+                    {darkMode && (
+                        <div className="pt-2">
+                            <button
+                                onClick={toggleDeepGreyMode}
+                                className="flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium text-muted hover:bg-surface-hover hover:text-foreground transition-colors"
+                            >
+                                <span className="flex items-center gap-3">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M12 2v20z" />
+                                        <path d="M18.36 5.64a9 9 0 1 1-12.73 0" />
+                                        <path d="M12 2a10 10 0 0 0-10 10" />
+                                    </svg>
+                                    Deep Grey
+                                </span>
+                                <div className={`relative w-10 h-5 rounded-full transition-colors ${deepGreyMode ? 'bg-accent' : 'bg-border'}`}>
+                                    <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${deepGreyMode ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                                </div>
+                            </button>
+                        </div>
+                    )}
 
                     {/* Language selector */}
                     <div className="pt-2">

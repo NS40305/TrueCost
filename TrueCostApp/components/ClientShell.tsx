@@ -8,6 +8,7 @@ import InstallPrompt from './InstallPrompt';
 
 export default function ClientShell({ children }: { children: ReactNode }) {
     const darkMode = useStore((s) => s.darkMode);
+    const deepGreyMode = useStore((s) => s.deepGreyMode);
     const [hydrated, setHydrated] = useState(false);
 
     // Wait for Zustand to rehydrate from localStorage before rendering
@@ -19,8 +20,9 @@ export default function ClientShell({ children }: { children: ReactNode }) {
     useEffect(() => {
         if (hydrated) {
             document.documentElement.classList.toggle('dark', darkMode);
+            document.documentElement.classList.toggle('deep-grey', darkMode && deepGreyMode);
         }
-    }, [darkMode, hydrated]);
+    }, [darkMode, deepGreyMode, hydrated]);
 
     // On SSR/first paint, apply dark class directly via script in layout.tsx.
     // Render children immediately but suppress store-dependent conditional UI
