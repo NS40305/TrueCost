@@ -7,7 +7,9 @@ import type { Language } from '@/lib/i18n';
 
 interface SpendingTrendProps {
     items: ShoppingItem[];
+    allItems: ShoppingItem[];
     currencySymbol: string;
+    currencyCode: string;
     language: Language;
     mode: 'weekly' | 'monthly';
     /** The reference date that defines the current period */
@@ -25,8 +27,23 @@ function getWeekBounds(date: Date) {
     return { start: mon, end: nextMon };
 }
 
-export default function SpendingTrend({ items, currencySymbol, language, mode, currentDate }: SpendingTrendProps) {
+/**
+ * Stock-market color conventions by currency:
+ *  - JPY, CNY, TWD  →  RED = up,  GREEN = down  (Asian markets)
+ *  - USD, CAD, EUR, GBP, AUD, INR, etc. → GREEN = up, RED = down (Western markets)
+ */
+function getMarketColors(currencyCode: string) {
+    const asianCurrencies = ['JPY', 'CNY', 'TWD'];
+    const isAsian = asianCurrencies.includes(currencyCode);
+    return {
+        up:   isAsian ? '#ef4444' : '#22c55e',   // red / green
+        down: isAsian ? '#22c55e' : '#ef4444',   // green / red
+    };
+}
+
+export default function SpendingTrend({ items, allItems, currencySymbol, currencyCode, language, mode, currentDate }: SpendingTrendProps) {
     const T = (key: string) => t(language, key);
+    const marketColors = getMarketColors(currencyCode);
 
     const { labels, values, todayIdx } = useMemo(() => {
         const locale = language === 'en' ? 'en-US' : language;
@@ -83,6 +100,37 @@ export default function SpendingTrend({ items, currencySymbol, language, mode, c
         }
     }, [items, mode, currentDate, language]);
 
+    // ── Previous period comparison ──
+    const comparison = useMemo(() => {
+        const currentTotal = items.reduce((sum, i) => sum + i.price, 0);
+        let prevStart: Date, prevEnd: Date;
+
+        if (mode === 'weekly') {
+            const { start } = getWeekBounds(currentDate);
+            prevStart = new Date(start);
+            prevStart.setDate(prevStart.getDate() - 7);
+            prevEnd = new Date(start);
+        } else {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            prevStart = new Date(year, month - 1, 1);
+            prevEnd = new Date(year, month, 1);
+        }
+
+        const prevTotal = (allItems || [])
+            .filter(i => {
+                const d = new Date(i.completedAt || i.addedAt);
+                return d >= prevStart && d < prevEnd;
+            })
+            .reduce((sum, i) => sum + i.price, 0);
+
+        if (prevTotal === 0 && currentTotal === 0) return null;
+
+        const diff = currentTotal - prevTotal;
+        if (diff === 0) return { amount: 0, direction: 'flat' as const };
+        return { amount: Math.abs(Math.round(diff)), direction: diff > 0 ? 'up' as const : 'down' as const };
+    }, [items, allItems, mode, currentDate]);
+
     if (items.length === 0) return null;
 
     const maxVal = Math.max(...values, 1);
@@ -119,7 +167,26 @@ export default function SpendingTrend({ items, currencySymbol, language, mode, c
                         <line x1="6" y1="20" x2="6" y2="14" />
                     </svg>
                 </div>
-                <h3 className="font-bold text-base">{T('spendingTrend')}</h3>
+                <h3 className="font-bold text-base flex-1">{T('spendingTrend')}</h3>
+                {comparison && comparison.direction !== 'flat' && (
+                    <span
+                        className="inline-flex items-center gap-0.5 text-xs font-bold px-2 py-1 rounded-lg"
+                        style={{
+                            color: comparison.direction === 'up' ? marketColors.up : marketColors.down,
+                            backgroundColor: comparison.direction === 'up'
+                                ? `${marketColors.up}15`
+                                : `${marketColors.down}15`,
+                        }}
+                    >
+                        {comparison.direction === 'up' ? '▲' : '▼'}
+                        {currencySymbol}{comparison.amount >= 1000 ? `${(comparison.amount / 1000).toFixed(1)}k` : comparison.amount.toLocaleString()}
+                    </span>
+                )}
+                {comparison && comparison.direction === 'flat' && (
+                    <span className="inline-flex items-center text-xs font-bold px-2 py-1 rounded-lg text-muted bg-surface-hover">
+                        — {currencySymbol}0
+                    </span>
+                )}
             </div>
 
             {/* Average indicator */}

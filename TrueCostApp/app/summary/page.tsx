@@ -164,7 +164,9 @@ export default function SummaryPage() {
             {(mode === 'weekly' || mode === 'monthly') && (
                 <SpendingTrend
                     items={filteredItems}
+                    allItems={completedItems}
                     currencySymbol={currencySymbol}
+                    currencyCode={settings.currency}
                     language={language}
                     mode={mode}
                     currentDate={currentDate}
