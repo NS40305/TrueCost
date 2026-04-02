@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, memo, useCallback } from 'react';
+import { useState, memo, useCallback, useRef } from 'react';
 import { ShoppingItem, useStore } from '@/lib/store';
 import { getTimeNeeded, formatHours } from '@/lib/calculations';
 import { CURRENCIES } from '@/lib/constants';
 import { t } from '@/lib/i18n';
 import { motion, useAnimation, PanInfo, useMotionValue, useMotionValueEvent } from 'framer-motion';
+import EditItemModal from './EditItemModal';
 
 interface ShoppingListItemProps {
     item: ShoppingItem;
@@ -26,6 +27,9 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
     const x = useMotionValue(0);
     const [isCompleting, setIsCompleting] = useState(false);
     const [dragDir, setDragDir] = useState<'left' | 'right' | null>(null);
+    const [editOpen, setEditOpen] = useState(false);
+    const hasDragged = useRef(false);
+    const openState = useRef<'left' | 'right' | null>(null);
     const ACTION_WIDTH_LEFT = 160;
     const ACTION_WIDTH_RIGHT = 100;
 
@@ -38,19 +42,35 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
     const handleDragEnd = useCallback(async (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         const offset = info.offset.x;
         const velocity = info.velocity.x;
+        const currentX = x.get();
+
+        // If card is already open, check if user is dragging back toward center
+        if (openState.current === 'right' && (offset < -10 || currentX < ACTION_WIDTH_RIGHT * 0.5)) {
+            openState.current = null;
+            controls.start({ x: 0, transition: { type: 'spring', bounce: 0, duration: 0.3 } });
+            return;
+        }
+        if (openState.current === 'left' && (offset > 10 || currentX > -ACTION_WIDTH_LEFT * 0.5)) {
+            openState.current = null;
+            controls.start({ x: 0, transition: { type: 'spring', bounce: 0, duration: 0.3 } });
+            return;
+        }
 
         // Swipe right (Reveal Complete)
         if (offset > ACTION_WIDTH_RIGHT * 0.4 || velocity > 500) {
+            openState.current = 'right';
             controls.start({ x: ACTION_WIDTH_RIGHT, transition: { type: 'spring', bounce: 0, duration: 0.4 } });
         }
         // Swipe left (Reveal actions)
         else if (offset < -ACTION_WIDTH_LEFT * 0.4 || velocity < -500) {
+            openState.current = 'left';
             controls.start({ x: -ACTION_WIDTH_LEFT, transition: { type: 'spring', bounce: 0, duration: 0.4 } });
         } else {
             // Snap back
+            openState.current = null;
             controls.start({ x: 0, transition: { type: 'spring', bounce: 0, duration: 0.4 } });
         }
-    }, [controls, ACTION_WIDTH_LEFT, ACTION_WIDTH_RIGHT]);
+    }, [controls, ACTION_WIDTH_LEFT, ACTION_WIDTH_RIGHT, x]);
 
     const handleComplete = useCallback(async () => {
         setIsCompleting(true);
@@ -60,6 +80,7 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
 
     const handlePin = useCallback(() => {
         togglePin(item.id);
+        openState.current = null;
         controls.start({ x: 0 });
     }, [togglePin, item.id, controls]);
 
@@ -130,9 +151,14 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
                 dragDirectionLock
                 dragConstraints={{ left: -ACTION_WIDTH_LEFT, right: ACTION_WIDTH_RIGHT }}
                 dragElastic={0.2}
+                onDragStart={() => { hasDragged.current = true; }}
                 onDragEnd={handleDragEnd}
                 animate={controls}
-                className="glass-card p-4 flex items-center gap-4 relative z-10 cursor-grab active:cursor-grabbing select-none"
+                onClick={() => {
+                    if (!hasDragged.current) setEditOpen(true);
+                    hasDragged.current = false;
+                }}
+                className="glass-card p-4 flex items-center gap-4 relative z-10 cursor-pointer select-none"
             >
                 {/* Pin indicator + icon */}
                 <div className="w-10 h-10 rounded-xl bg-accent/15 flex items-center justify-center shrink-0 relative">
@@ -190,6 +216,14 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
                     </svg>
                 </div>
             </motion.div>
+
+            {/* Edit modal */}
+            <EditItemModal
+                item={item}
+                open={editOpen}
+                onClose={() => setEditOpen(false)}
+                showDate={false}
+            />
         </div>
     );
 });

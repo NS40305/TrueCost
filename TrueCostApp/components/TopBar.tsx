@@ -11,7 +11,7 @@ export default function TopBar() {
             <button
                 onClick={() => setDrawerOpen(true)}
                 aria-label="Open menu"
-                className="p-2 -ml-2 rounded-xl hover:bg-surface-hover transition-colors"
+                className="topbar-hamburger p-2 -ml-2 rounded-xl hover:bg-surface-hover transition-colors"
             >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                     <line x1="3" y1="6" x2="21" y2="6" />

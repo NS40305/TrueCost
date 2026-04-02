@@ -47,7 +47,7 @@ export default function InstallPrompt() {
     if (isStandalone || !showPrompt || dismissed) return null;
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-surface/95 backdrop-blur-xl border-t border-border z-[100] flex flex-col gap-2 shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.3)] animate-in slide-in-from-bottom-10 fade-in duration-500">
+        <div className="fixed bottom-0 left-0 right-0 p-4 pb-[calc(1rem+76px)] md:pb-4 bg-surface/95 backdrop-blur-xl border-t border-border z-[90] flex flex-col gap-2 shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.3)] animate-in slide-in-from-bottom-10 fade-in duration-500">
             <div className="flex items-start justify-between">
                 <div className="flex flex-col">
                     <h3 className="font-bold text-foreground text-sm tracking-wide">

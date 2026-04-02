@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useStore } from '@/lib/store';
 import TopBar from './TopBar';
 import Drawer from './Drawer';
+import BottomNav from './BottomNav';
 import InstallPrompt from './InstallPrompt';
 
 export default function ClientShell({ children }: { children: ReactNode }) {
@@ -39,6 +40,7 @@ export default function ClientShell({ children }: { children: ReactNode }) {
                     </div>
                 )}
             </main>
+            {hydrated && <BottomNav />}
         </>
     );
 }

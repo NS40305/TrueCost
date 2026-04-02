@@ -7,14 +7,27 @@ import { CURRENCIES } from '@/lib/constants';
 import { t } from '@/lib/i18n';
 import SegmentedControl from '@/components/SegmentedControl';
 import SummaryItem from '@/components/SummaryItem';
+import SpendingChart from '@/components/SpendingChart';
+import SpendingTrend from '@/components/SpendingTrend';
 
-type ReportMode = 'monthly' | 'yearly';
+type ReportMode = 'weekly' | 'monthly' | 'yearly';
+
+/** Return Mon 00:00 and next-Mon 00:00 for the ISO week containing `date`. */
+function getWeekBounds(date: Date): { start: Date; end: Date } {
+    const d = new Date(date);
+    const day = d.getDay(); // 0=Sun … 6=Sat
+    const diff = day === 0 ? -6 : 1 - day; // roll back to Monday
+    const mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diff);
+    const nextMon = new Date(mon);
+    nextMon.setDate(nextMon.getDate() + 7);
+    return { start: mon, end: nextMon };
+}
 
 export default function SummaryPage() {
     const items = useStore((s) => s.items);
     const settings = useStore((s) => s.settings);
     const language = useStore((s) => s.language);
-    const [mode, setMode] = useState<ReportMode>('monthly');
+    const [mode, setMode] = useState<ReportMode>('weekly');
     const [currentDate, setCurrentDate] = useState(new Date());
 
     const T = (key: string) => t(language, key);
@@ -29,7 +42,10 @@ export default function SummaryPage() {
     const filteredItems = useMemo(() => {
         let list = completedItems.filter(item => {
             const date = new Date(item.completedAt || item.addedAt);
-            if (mode === 'monthly') {
+            if (mode === 'weekly') {
+                const { start, end } = getWeekBounds(currentDate);
+                return date >= start && date < end;
+            } else if (mode === 'monthly') {
                 return date.getMonth() === currentDate.getMonth() && date.getFullYear() === currentDate.getFullYear();
             } else {
                 return date.getFullYear() === currentDate.getFullYear();
@@ -56,7 +72,9 @@ export default function SummaryPage() {
 
     const changeDate = (dir: number) => {
         const next = new Date(currentDate);
-        if (mode === 'monthly') {
+        if (mode === 'weekly') {
+            next.setDate(next.getDate() + dir * 7);
+        } else if (mode === 'monthly') {
             next.setMonth(next.getMonth() + dir);
         } else {
             next.setFullYear(next.getFullYear() + dir);
@@ -67,6 +85,14 @@ export default function SummaryPage() {
     const periodLabel = useMemo(() => {
         if (mode === 'yearly') {
             return currentDate.getFullYear().toString();
+        }
+        if (mode === 'weekly') {
+            const { start, end } = getWeekBounds(currentDate);
+            const endDisplay = new Date(end);
+            endDisplay.setDate(endDisplay.getDate() - 1); // show Sun, not next Mon
+            const locale = language === 'en' ? 'en-US' : language;
+            const fmt: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+            return `${start.toLocaleDateString(locale, fmt)} – ${endDisplay.toLocaleDateString(locale, fmt)}`;
         }
         return currentDate.toLocaleDateString(language === 'en' ? 'en-US' : language, { month: 'long', year: 'numeric' });
     }, [currentDate, mode, language]);
@@ -103,6 +129,7 @@ export default function SummaryPage() {
             {/* Mode toggle */}
             <SegmentedControl
                 options={[
+                    { label: T('weeklyReport'), value: 'weekly' },
                     { label: T('monthlyReport'), value: 'monthly' },
                     { label: T('yearlyReport'), value: 'yearly' },
                 ]}
@@ -132,6 +159,25 @@ export default function SummaryPage() {
                     <p className="text-2xl font-bold tabular-nums text-accent">{formatHours(totalTime)} {T('hrs')}</p>
                 </div>
             </div>
+
+            {/* Spending Trend (weekly & monthly only) */}
+            {(mode === 'weekly' || mode === 'monthly') && (
+                <SpendingTrend
+                    items={filteredItems}
+                    currencySymbol={currencySymbol}
+                    language={language}
+                    mode={mode}
+                    currentDate={currentDate}
+                />
+            )}
+
+            {/* Spending Chart */}
+            <SpendingChart
+                items={filteredItems}
+                currencySymbol={currencySymbol}
+                totalSpent={totalSpent}
+                language={language}
+            />
 
             {/* Items List */}
             <div className="space-y-4">

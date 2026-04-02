@@ -27,6 +27,13 @@ export interface ShoppingItem {
     location?: 'list' | 'summary'; // New property to track explicit location
 }
 
+export interface QuickAddPreset {
+    id: string;
+    name: string;
+    price: number;
+    category: Category;
+}
+
 export interface SettingsState {
     incomeType: IncomeType;
     rate: number;
@@ -47,11 +54,19 @@ export interface AppState {
     /* shopping list */
     items: ShoppingItem[];
     addItem: (item: Omit<ShoppingItem, 'id' | 'addedAt'>) => void;
+    updateItem: (id: string, updates: Partial<Pick<ShoppingItem, 'name' | 'price' | 'category' | 'completedAt'>>) => void;
     removeItem: (id: string) => void;
     togglePin: (id: string) => void;
     completeItem: (id: string, dateMs?: number) => void;
     uncompleteItem: (id: string) => void;
     clearItems: () => void;
+
+    /* quick add presets */
+    quickAddItems: QuickAddPreset[];
+    addQuickAddItem: (item: Omit<QuickAddPreset, 'id'>) => void;
+    updateQuickAddItem: (id: string, updates: Partial<Omit<QuickAddPreset, 'id'>>) => void;
+    removeQuickAddItem: (id: string) => void;
+    reorderQuickAddItems: (items: QuickAddPreset[]) => void;
 
     /* ui */
     darkMode: boolean;
@@ -71,6 +86,15 @@ export interface AppState {
 }
 
 /* ── Defaults ──────────────────────── */
+
+import { QUICK_ADD_PRESETS } from './constants';
+
+const defaultQuickAddItems: QuickAddPreset[] = QUICK_ADD_PRESETS.map((p) => ({
+    id: crypto.randomUUID(),
+    name: p.name,
+    price: p.price,
+    category: p.category,
+}));
 
 const defaultSettings: SettingsState = {
     incomeType: 'hourly',
@@ -98,12 +122,19 @@ export const useStore = create<AppState>()(
                 set((s) => ({ settings: { ...s.settings, daysPerMonth: d } })),
 
             items: [],
+            quickAddItems: [...defaultQuickAddItems],
             addItem: (item) =>
                 set((s) => ({
                     items: [
                         ...s.items,
                         { ...item, id: crypto.randomUUID(), addedAt: Date.now(), location: 'list' },
                     ],
+                })),
+            updateItem: (id, updates) =>
+                set((s) => ({
+                    items: s.items.map((i) =>
+                        i.id === id ? { ...i, ...updates } : i
+                    ),
                 })),
             removeItem: (id) =>
                 set((s) => ({ items: s.items.filter((i) => i.id !== id) })),
@@ -136,6 +167,22 @@ export const useStore = create<AppState>()(
                 })),
             clearItems: () => set({ items: [] }),
 
+            addQuickAddItem: (item) =>
+                set((s) => ({
+                    quickAddItems: [...s.quickAddItems, { ...item, id: crypto.randomUUID() }],
+                })),
+            updateQuickAddItem: (id, updates) =>
+                set((s) => ({
+                    quickAddItems: s.quickAddItems.map((i) =>
+                        i.id === id ? { ...i, ...updates } : i
+                    ),
+                })),
+            removeQuickAddItem: (id) =>
+                set((s) => ({
+                    quickAddItems: s.quickAddItems.filter((i) => i.id !== id),
+                })),
+            reorderQuickAddItems: (items) => set({ quickAddItems: items }),
+
             darkMode: true,
             toggleDarkMode: () => set((s) => ({ darkMode: !s.darkMode })),
             deepGreyMode: false,
@@ -146,8 +193,8 @@ export const useStore = create<AppState>()(
             setLanguage: (l) => set({ language: l }),
 
             exportData: () => {
-                const { settings, items, darkMode, deepGreyMode, language } = get();
-                return JSON.stringify({ settings, items, darkMode, deepGreyMode, language }, null, 2);
+                const { settings, items, quickAddItems, darkMode, deepGreyMode, language } = get();
+                return JSON.stringify({ settings, items, quickAddItems, darkMode, deepGreyMode, language }, null, 2);
             },
             importData: (json: string) => {
                 try {
@@ -156,6 +203,7 @@ export const useStore = create<AppState>()(
                         set({
                             settings: data.settings,
                             items: data.items,
+                            ...(Array.isArray(data.quickAddItems) && { quickAddItems: data.quickAddItems }),
                             ...(data.darkMode !== undefined && { darkMode: data.darkMode }),
                             ...(data.deepGreyMode !== undefined && { deepGreyMode: data.deepGreyMode }),
                             ...(data.language !== undefined && { language: data.language })
@@ -171,6 +219,12 @@ export const useStore = create<AppState>()(
                 set({
                     settings: { ...defaultSettings },
                     items: [],
+                    quickAddItems: QUICK_ADD_PRESETS.map((p) => ({
+                        id: crypto.randomUUID(),
+                        name: p.name,
+                        price: p.price,
+                        category: p.category,
+                    })),
                 }),
             loadDemoData: () => {
                 const demoItems: ShoppingItem[] = [];
@@ -238,9 +292,23 @@ export const useStore = create<AppState>()(
         }),
         {
             name: 'truecost-storage',
+            version: 1,
+            migrate: (persisted: unknown, version: number) => {
+                const state = persisted as Record<string, unknown>;
+                if (version === 0 || !state.quickAddItems) {
+                    state.quickAddItems = QUICK_ADD_PRESETS.map((p) => ({
+                        id: crypto.randomUUID(),
+                        name: p.name,
+                        price: p.price,
+                        category: p.category,
+                    }));
+                }
+                return state;
+            },
             partialize: (state) => ({
                 settings: state.settings,
                 items: state.items,
+                quickAddItems: state.quickAddItems,
                 darkMode: state.darkMode,
                 deepGreyMode: state.deepGreyMode,
                 language: state.language,

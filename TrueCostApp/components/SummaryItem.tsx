@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, memo, useCallback } from 'react';
+import { useState, memo, useCallback, useRef } from 'react';
 import { ShoppingItem, useStore } from '@/lib/store';
 import { getTimeNeeded, formatHours } from '@/lib/calculations';
 import { CURRENCIES } from '@/lib/constants';
 import { t } from '@/lib/i18n';
 import { motion, useAnimation, PanInfo, useMotionValue, useMotionValueEvent } from 'framer-motion';
+import EditItemModal from './EditItemModal';
 
 interface SummaryItemProps {
     item: ShoppingItem;
@@ -25,6 +26,9 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
     const controls = useAnimation();
     const x = useMotionValue(0);
     const [dragDir, setDragDir] = useState<'left' | 'right' | null>(null);
+    const [editOpen, setEditOpen] = useState(false);
+    const hasDragged = useRef(false);
+    const openState = useRef<'left' | 'right' | null>(null);
     const ACTION_WIDTH_LEFT = 100;   // delete (swipe left)
     const ACTION_WIDTH_RIGHT = 100;  // undo (swipe right)
 
@@ -37,18 +41,34 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
     const handleDragEnd = useCallback(async (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         const offset = info.offset.x;
         const velocity = info.velocity.x;
+        const currentX = x.get();
+
+        // If card is already open, check if user is dragging back toward center
+        if (openState.current === 'right' && (offset < -10 || currentX < ACTION_WIDTH_RIGHT * 0.5)) {
+            openState.current = null;
+            controls.start({ x: 0, transition: { type: 'spring', bounce: 0, duration: 0.3 } });
+            return;
+        }
+        if (openState.current === 'left' && (offset > 10 || currentX > -ACTION_WIDTH_LEFT * 0.5)) {
+            openState.current = null;
+            controls.start({ x: 0, transition: { type: 'spring', bounce: 0, duration: 0.3 } });
+            return;
+        }
 
         // Swipe right → reveal Undo button
         if (offset > ACTION_WIDTH_RIGHT * 0.4 || velocity > 500) {
+            openState.current = 'right';
             controls.start({ x: ACTION_WIDTH_RIGHT, transition: { type: 'spring', bounce: 0, duration: 0.4 } });
         }
         // Swipe left → reveal Delete button
         else if (offset < -ACTION_WIDTH_LEFT * 0.4 || velocity < -500) {
+            openState.current = 'left';
             controls.start({ x: -ACTION_WIDTH_LEFT, transition: { type: 'spring', bounce: 0, duration: 0.4 } });
         } else {
+            openState.current = null;
             controls.start({ x: 0, transition: { type: 'spring', bounce: 0, duration: 0.4 } });
         }
-    }, [controls, ACTION_WIDTH_LEFT, ACTION_WIDTH_RIGHT]);
+    }, [controls, ACTION_WIDTH_LEFT, ACTION_WIDTH_RIGHT, x]);
 
     const handleUndo = useCallback(async () => {
         await controls.start({ x: '100%', opacity: 0, transition: { duration: 0.25 } });
@@ -101,9 +121,14 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
                 dragDirectionLock
                 dragConstraints={{ left: -ACTION_WIDTH_LEFT, right: ACTION_WIDTH_RIGHT }}
                 dragElastic={0.2}
+                onDragStart={() => { hasDragged.current = true; }}
                 onDragEnd={handleDragEnd}
                 animate={controls}
-                className="glass-card bg-surface p-4 flex items-center gap-4 relative z-10 cursor-grab active:cursor-grabbing select-none"
+                onClick={() => {
+                    if (!hasDragged.current) setEditOpen(true);
+                    hasDragged.current = false;
+                }}
+                className="glass-card bg-surface p-4 flex items-center gap-4 relative z-10 cursor-pointer select-none"
             >
                 <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
@@ -129,6 +154,14 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
                     </svg>
                 </div>
             </motion.div>
+
+            {/* Edit modal */}
+            <EditItemModal
+                item={item}
+                open={editOpen}
+                onClose={() => setEditOpen(false)}
+                showDate={true}
+            />
         </div>
     );
 });

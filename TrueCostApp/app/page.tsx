@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useStore } from '@/lib/store';
+import { useStore, QuickAddPreset } from '@/lib/store';
 import { getTimeNeeded } from '@/lib/calculations';
-import { CATEGORIES, CURRENCIES, Category, QuickAddItem } from '@/lib/constants';
+import { CATEGORIES, CURRENCIES, Category } from '@/lib/constants';
 import { t } from '@/lib/i18n';
 import ResultCards from '@/components/ResultCards';
 import QuickAddChips from '@/components/QuickAddChips';
@@ -32,7 +32,7 @@ export default function CalculatorPage() {
     return getTimeNeeded(priceNum, settings);
   }, [priceNum, settings]);
 
-  const handleQuickAdd = (item: QuickAddItem) => {
+  const handleQuickAdd = (item: QuickAddPreset) => {
     setPrice(item.price.toString());
     setName(item.name);
     setCategory(item.category);
