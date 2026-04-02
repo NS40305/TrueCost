@@ -224,11 +224,11 @@ input[type='number'] {
     .bottom-nav {
       display: block;
       position: fixed;
-      bottom: 0;
+      bottom: 50px;
       left: 0;
       right: 0;
       z-index: 100;
-      padding: 0 8px calc(env(safe-area-inset-bottom, 0px) + 4px);
+      padding: 0 16px;
       pointer-events: none;
     }
 
