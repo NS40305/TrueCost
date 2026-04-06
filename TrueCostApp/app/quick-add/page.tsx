@@ -391,7 +391,7 @@ export default function QuickAddSettingsPage() {
             {/* Preview Section */}
             {quickAddItems.length > 0 && (
                 <div className="glass-card p-4 space-y-3">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted">{T('quickAdd')} — Preview</p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted">{T('quickAdd')} — {T('preview')}</p>
                     <div className="flex flex-wrap gap-2">
                         {quickAddItems.map((item) => (
                             <span

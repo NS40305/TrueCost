@@ -127,6 +127,9 @@ const translations: Record<Language, Record<string, string>> = {
         noQuickAddItems: 'No quick add items yet. Add one above!',
         resetToDefaults: 'Reset to Defaults',
         customizeQuickAdd: 'Customize',
+        preview: 'Preview',
+        subscriptionPlaceholder: 'e.g. Netflix',
+        itemPlaceholder: 'e.g. New headphones',
 
         // Subscriptions
         subscriptions: 'Subscriptions',
@@ -134,6 +137,9 @@ const translations: Record<Language, Record<string, string>> = {
         editSubscription: 'Edit Subscription',
         subscriptionName: 'Subscription Name',
         billingCycle: 'Billing Cycle',
+        weeklyCycle: 'Weekly',
+        monthlyCycle: 'Monthly',
+        yearlyCycle: 'Yearly',
         noSubscriptions: 'No subscriptions yet.',
         noSubscriptionsDesc: 'Add recurring expenses to track them automatically.',
         fixedExpenses: 'Fixed Expenses',
@@ -281,6 +287,9 @@ const translations: Record<Language, Record<string, string>> = {
         noQuickAddItems: '尚無快速新增項目，請在上方新增！',
         resetToDefaults: '恢復預設',
         customizeQuickAdd: '自訂',
+        preview: '預覽',
+        subscriptionPlaceholder: '例如 Netflix',
+        itemPlaceholder: '例如 新耳機',
 
         // Subscriptions
         subscriptions: '訂閱',
@@ -288,6 +297,9 @@ const translations: Record<Language, Record<string, string>> = {
         editSubscription: '編輯訂閱',
         subscriptionName: '訂閱名稱',
         billingCycle: '計費週期',
+        weeklyCycle: '每週',
+        monthlyCycle: '每月',
+        yearlyCycle: '每年',
         noSubscriptions: '尚無訂閱項目。',
         noSubscriptionsDesc: '新增固定消費以自動追蹤。',
         fixedExpenses: '固定消費',
@@ -434,6 +446,9 @@ const translations: Record<Language, Record<string, string>> = {
         noQuickAddItems: '还没有快速添加项目，请在上方添加！',
         resetToDefaults: '恢复默认',
         customizeQuickAdd: '自定义',
+        preview: '预览',
+        subscriptionPlaceholder: '例如 Netflix',
+        itemPlaceholder: '例如 新耳机',
 
         // Subscriptions
         subscriptions: '订阅',
@@ -441,6 +456,9 @@ const translations: Record<Language, Record<string, string>> = {
         editSubscription: '编辑订阅',
         subscriptionName: '订阅名称',
         billingCycle: '计费周期',
+        weeklyCycle: '每周',
+        monthlyCycle: '每月',
+        yearlyCycle: '每年',
         noSubscriptions: '还没有订阅项目。',
         noSubscriptionsDesc: '添加固定消费以自动追踪。',
         fixedExpenses: '固定消费',
@@ -587,6 +605,9 @@ const translations: Record<Language, Record<string, string>> = {
         noQuickAddItems: 'クイック追加アイテムがありません。上から追加してください！',
         resetToDefaults: 'デフォルトに戻す',
         customizeQuickAdd: 'カスタマイズ',
+        preview: 'プレビュー',
+        subscriptionPlaceholder: '例: Netflix',
+        itemPlaceholder: '例: 新しいヘッドホン',
 
         // Subscriptions
         subscriptions: 'サブスクリプション',
@@ -594,6 +615,9 @@ const translations: Record<Language, Record<string, string>> = {
         editSubscription: 'サブスク編集',
         subscriptionName: 'サブスク名',
         billingCycle: '請求サイクル',
+        weeklyCycle: '毎週',
+        monthlyCycle: '毎月',
+        yearlyCycle: '毎年',
         noSubscriptions: 'サブスクリプションはまだありません。',
         noSubscriptionsDesc: '固定費を追加して自動追跡しましょう。',
         fixedExpenses: '固定費',
@@ -740,6 +764,9 @@ const translations: Record<Language, Record<string, string>> = {
         noQuickAddItems: 'Aucun article d\'ajout rapide. Ajoutez-en un ci-dessus !',
         resetToDefaults: 'Réinitialiser',
         customizeQuickAdd: 'Personnaliser',
+        preview: 'Aperçu',
+        subscriptionPlaceholder: 'ex. Netflix',
+        itemPlaceholder: 'ex. Nouveaux écouteurs',
 
         // Subscriptions
         subscriptions: 'Abonnements',
@@ -747,6 +774,9 @@ const translations: Record<Language, Record<string, string>> = {
         editSubscription: 'Modifier l\'abonnement',
         subscriptionName: 'Nom de l\'abonnement',
         billingCycle: 'Cycle de facturation',
+        weeklyCycle: 'Hebdomadaire',
+        monthlyCycle: 'Mensuel',
+        yearlyCycle: 'Annuel',
         noSubscriptions: 'Aucun abonnement pour le moment.',
         noSubscriptionsDesc: 'Ajoutez des dépenses récurrentes pour les suivre automatiquement.',
         fixedExpenses: 'Dépenses fixes',

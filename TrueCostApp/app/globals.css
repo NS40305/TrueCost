@@ -230,6 +230,18 @@ input[type='number'] {
   animation: modal-sheet-out 0.2s ease-in forwards;
 }
 
+/* ── Prevent iOS Safari Auto-Zoom ─── */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="password"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* ── Bottom Nav Bar (mobile only) ─── */
 @layer base {
   .bottom-nav {

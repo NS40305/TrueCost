@@ -146,7 +146,7 @@ export default function CalculatorPage() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. New headphones"
+              placeholder={T('itemPlaceholder')}
               className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
             />
           </div>
@@ -405,7 +405,7 @@ export default function CalculatorPage() {
                       type="text"
                       value={subName}
                       onChange={(e) => setSubName(e.target.value)}
-                      placeholder="e.g. Netflix"
+                      placeholder={T('subscriptionPlaceholder')}
                       className="w-full px-3 py-2.5 rounded-xl bg-surface border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
                     />
                   </div>
@@ -443,9 +443,9 @@ export default function CalculatorPage() {
                       onChange={(e) => setSubCycle(e.target.value as SubscriptionCycle)}
                       className="w-full px-3 py-2.5 rounded-xl bg-surface border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all appearance-none cursor-pointer"
                     >
-                      <option value="weekly">{T('weekly')}</option>
-                      <option value="monthly">{T('monthly')}</option>
-                      <option value="yearly">{T('yearly')}</option>
+                      <option value="weekly">{T('weeklyCycle')}</option>
+                      <option value="monthly">{T('monthlyCycle')}</option>
+                      <option value="yearly">{T('yearlyCycle')}</option>
                     </select>
                   </div>
                 </div>

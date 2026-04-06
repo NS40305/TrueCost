@@ -143,12 +143,34 @@ const SubscriptionCard = memo(function SubscriptionCard({ sub, editable = false 
                         <div className="space-y-4">
                             <div>
                                 <label className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1.5">{T('subscriptionName')}</label>
-                                <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all" />
+                                <input 
+                                    type="text" 
+                                    value={editName} 
+                                    onChange={(e) => setEditName(e.target.value)} 
+                                    onFocus={(e) => {
+                                        setTimeout(() => {
+                                            e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        }, 300);
+                                    }}
+                                    className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all" 
+                                />
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1.5">{T('itemPrice')}</label>
-                                    <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} min="0" step="0.01" className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all" />
+                                    <input 
+                                        type="number" 
+                                        value={editPrice} 
+                                        onChange={(e) => setEditPrice(e.target.value)} 
+                                        onFocus={(e) => {
+                                            setTimeout(() => {
+                                                e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                            }, 300);
+                                        }}
+                                        min="0" 
+                                        step="0.01" 
+                                        className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all" 
+                                    />
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1.5">{T('category')}</label>
@@ -166,7 +188,7 @@ const SubscriptionCard = memo(function SubscriptionCard({ sub, editable = false 
                                             onClick={() => setEditCycle(c)}
                                             className={`py-2 rounded-xl text-sm font-medium transition-all ${editCycle === c ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'bg-surface-hover text-muted hover:text-foreground'}`}
                                         >
-                                            {T(c)}
+                                            {T(c + 'Cycle')}
                                         </button>
                                     ))}
                                 </div>
