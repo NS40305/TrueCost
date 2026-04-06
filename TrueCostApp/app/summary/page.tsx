@@ -548,7 +548,7 @@ export default function SummaryPage() {
                                                 }`}
                                             >
                                                 <CategoryIcon category={cat} size={12} className={regretCategoryFilter === cat ? 'text-white' : 'text-purple-400'} />
-                                                {cat} ({count})
+                                                {T(cat)} ({count})
                                             </button>
                                         );
                                     })}
@@ -571,7 +571,7 @@ export default function SummaryPage() {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm font-semibold text-purple-300 truncate">{item.name}</p>
-                                                    <p className="text-[11px] text-muted">{item.category} • {dateLabel}</p>
+                                                    <p className="text-[11px] text-muted">{T(item.category)} • {dateLabel}</p>
                                                 </div>
                                                 <div className="text-right shrink-0">
                                                     <p className="text-sm font-bold tabular-nums text-purple-400">{currencySymbol}{item.price.toLocaleString()}</p>
@@ -617,7 +617,7 @@ export default function SummaryPage() {
                                 <div className="flex-1 min-w-0">
                                     <p className="font-semibold text-sm truncate">{sub.name}</p>
                                     <p className="text-xs text-muted">
-                                        {sub.category} • {currencySymbol}{sub.price} {T(CYCLE_LABEL_KEY[sub.cycle])}
+                                        {T(sub.category)} • {currencySymbol}{sub.price} {T(CYCLE_LABEL_KEY[sub.cycle])}
                                         {sub.occurrences > 1 && ` × ${sub.occurrences}`}
                                     </p>
                                 </div>

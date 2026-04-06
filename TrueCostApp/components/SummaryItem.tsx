@@ -149,7 +149,7 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
                 <div className="flex-1 min-w-0">
                     <p className={`font-semibold text-sm truncate ${item.regretted ? 'text-purple-300' : ''}`}>{item.name}</p>
                     <p className="text-xs text-muted mt-0.5">
-                        {item.category} • {dateLabel}
+                        {T(item.category)} • {dateLabel}
                         {item.regretted && <span className="ml-1 text-purple-400">• {T('regretted')}</span>}
                     </p>
                 </div>

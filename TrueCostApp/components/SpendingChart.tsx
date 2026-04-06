@@ -110,7 +110,7 @@ export default function SpendingChart({ items, currencySymbol, totalSpent, langu
 
             {/* Insight */}
             <p className="text-sm text-muted leading-relaxed">
-                <span className="font-semibold" style={{ color: topCat.color }}>{topCat.category}</span>
+                <span className="font-semibold" style={{ color: topCat.color }}>{T(topCat.category)}</span>
                 {' '}{T('topCategoryInsight')}{' '}
                 <span className="font-bold text-accent">{topCat.percentage.toFixed(1)}%</span>
             </p>
@@ -152,7 +152,7 @@ export default function SpendingChart({ items, currencySymbol, totalSpent, langu
                                 {i + 1}.
                             </span>
                             <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: cat.color }} />
-                            <span className="text-sm font-medium truncate">{T(`cat_${cat.category.replace(/ & /g, '_').replace(/ /g, '_')}`) !== `cat_${cat.category.replace(/ & /g, '_').replace(/ /g, '_')}` ? T(`cat_${cat.category.replace(/ & /g, '_').replace(/ /g, '_')}`) : cat.category}</span>
+                            <span className="text-sm font-medium truncate">{T(cat.category)}</span>
                             <span className="text-xs text-muted shrink-0">{cat.percentage.toFixed(1)}%</span>
                         </div>
                         <div className="flex items-center gap-1 shrink-0 ml-2">

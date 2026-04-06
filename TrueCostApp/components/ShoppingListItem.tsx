@@ -193,7 +193,7 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
                             </a>
                         )}
                     </div>
-                    <p className="text-xs text-muted mt-0.5">{item.category}</p>
+                    <p className="text-xs text-muted mt-0.5">{T(item.category)}</p>
                 </div>
 
                 {/* Price & time */}

@@ -152,7 +152,7 @@ export default function EditItemModal({ item, open, onClose, showDate = false }:
                         className="w-full px-4 py-3 rounded-xl bg-surface-hover border border-border text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all appearance-none cursor-pointer"
                     >
                         {CATEGORIES.map((cat) => (
-                            <option key={cat} value={cat}>{cat}</option>
+                            <option key={cat} value={cat}>{T(cat)}</option>
                         ))}
                     </select>
                 </div>

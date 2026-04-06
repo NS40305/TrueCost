@@ -75,7 +75,14 @@ const SubscriptionCard = memo(function SubscriptionCard({ sub, editable = false 
         <>
             <div
                 className={`glass-card p-4 flex items-center gap-3 transition-opacity ${!sub.enabled ? 'opacity-50' : ''}`}
-                onClick={() => editable && setEditOpen(true)}
+                onClick={() => {
+                    if (!editable) return;
+                    setEditName(sub.name);
+                    setEditPrice(sub.price.toString());
+                    setEditCategory(sub.category);
+                    setEditCycle(sub.cycle);
+                    setEditOpen(true);
+                }}
                 style={{ cursor: editable ? 'pointer' : 'default' }}
             >
                 {/* Icon */}
@@ -89,7 +96,7 @@ const SubscriptionCard = memo(function SubscriptionCard({ sub, editable = false 
                 <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm truncate">{sub.name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-xs text-muted">{sub.category}</span>
+                        <span className="text-xs text-muted">{T(sub.category)}</span>
                         <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-accent/10 text-accent text-[10px] font-medium">
                             {CYCLE_ICONS[sub.cycle]}
                             {cycleLabel}
@@ -146,7 +153,7 @@ const SubscriptionCard = memo(function SubscriptionCard({ sub, editable = false 
                                 <div>
                                     <label className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1.5">{T('category')}</label>
                                     <select value={editCategory} onChange={(e) => setEditCategory(e.target.value as Category)} className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all appearance-none cursor-pointer">
-                                        {CATEGORIES.map((c) => (<option key={c} value={c}>{c}</option>))}
+                                        {CATEGORIES.map((c) => (<option key={c} value={c}>{T(c)}</option>))}
                                     </select>
                                 </div>
                             </div>

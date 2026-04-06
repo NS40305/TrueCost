@@ -159,6 +159,20 @@ const translations: Record<Language, Record<string, string>> = {
         greatJob: 'Great job! Most of your spending was small and manageable.',
         beCareful: 'Some big expenses this period. Review whether they were necessary.',
         overspending: 'Heavy spending detected! Consider cutting back where possible.',
+        
+        // Categories
+        'Food & Drink': 'Food & Drink',
+        'Electronics': 'Electronics',
+        'Clothing': 'Clothing',
+        'Entertainment': 'Entertainment',
+        'Transport': 'Transport',
+        'Housing': 'Housing',
+        'Health': 'Health',
+        'Education': 'Education',
+        'Other': 'Other',
+
+        // Navigation & Features
+        updateHistory: 'Update History',
     },
 
     'zh-TW': {
@@ -298,6 +312,20 @@ const translations: Record<Language, Record<string, string>> = {
         greatJob: '做得好！大部分消費都是小額且可控的。',
         beCareful: '這段期間有一些大額支出，檢視是否必要。',
         overspending: '偵測到大量消費！考慮減少不必要的開支。',
+        
+        // Categories
+        'Food & Drink': '餐飲',
+        'Electronics': '電子產品',
+        'Clothing': '服飾',
+        'Entertainment': '娛樂',
+        'Transport': '交通',
+        'Housing': '居住',
+        'Health': '健康',
+        'Education': '教育',
+        'Other': '其他',
+
+        // Navigation & Features
+        updateHistory: '更新歷史',
     },
 
     'zh-CN': {
@@ -437,6 +465,20 @@ const translations: Record<Language, Record<string, string>> = {
         greatJob: '做得好！大部分消费都是小额且可控的。',
         beCareful: '这段期间有一些大额支出，检视是否必要。',
         overspending: '检测到大量消费！考虑减少不必要的开支。',
+        
+        // Categories
+        'Food & Drink': '餐饮',
+        'Electronics': '电子产品',
+        'Clothing': '服饰',
+        'Entertainment': '娱乐',
+        'Transport': '交通',
+        'Housing': '居住',
+        'Health': '健康',
+        'Education': '教育',
+        'Other': '其他',
+
+        // Navigation & Features
+        updateHistory: '更新历史',
     },
 
     ja: {
@@ -576,6 +618,20 @@ const translations: Record<Language, Record<string, string>> = {
         greatJob: '素晴らしい！ほとんどの支出が小額で管理可能です。',
         beCareful: 'この期間にいくつかの大きな出費がありました。必要か見直しましょう。',
         overspending: '多額の支出を検知！可能な範囲で削減を検討しましょう。',
+        
+        // Categories
+        'Food & Drink': '飲食',
+        'Electronics': '電子機器',
+        'Clothing': '衣類',
+        'Entertainment': 'エンターテイメント',
+        'Transport': '交通',
+        'Housing': '住宅',
+        'Health': '健康',
+        'Education': '教育',
+        'Other': 'その他',
+
+        // Navigation & Features
+        updateHistory: '更新履歴',
     },
 
     fr: {
@@ -715,6 +771,20 @@ const translations: Record<Language, Record<string, string>> = {
         greatJob: 'Bravo ! La plupart de vos dépenses étaient modestes et maîtrisées.',
         beCareful: 'Quelques grosses dépenses cette période. Vérifiez si elles étaient nécessaires.',
         overspending: 'Dépenses importantes détectées ! Envisagez de réduire si possible.',
+        
+        // Categories
+        'Food & Drink': 'Alimentation',
+        'Electronics': 'Électronique',
+        'Clothing': 'Vêtements',
+        'Entertainment': 'Divertissement',
+        'Transport': 'Transport',
+        'Housing': 'Logement',
+        'Health': 'Santé',
+        'Education': 'Éducation',
+        'Other': 'Autre',
+
+        // Navigation & Features
+        updateHistory: 'Historique des mises à jour',
     },
 };
 

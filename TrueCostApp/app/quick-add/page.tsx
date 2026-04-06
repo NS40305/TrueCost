@@ -128,7 +128,7 @@ function QuickAddRow({
                         className="w-full px-3 py-2 rounded-xl bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all appearance-none cursor-pointer"
                     >
                         {CATEGORIES.map((c) => (
-                            <option key={c} value={c}>{c}</option>
+                            <option key={c} value={c}>{T(c)}</option>
                         ))}
                     </select>
                 </div>
@@ -203,7 +203,7 @@ function QuickAddRow({
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm truncate">{item.name}</p>
-                    <p className="text-xs text-muted mt-0.5">{item.category}</p>
+                    <p className="text-xs text-muted mt-0.5">{T(item.category)}</p>
                 </div>
 
                 {/* Price */}
@@ -339,7 +339,7 @@ export default function QuickAddSettingsPage() {
                                 className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all appearance-none cursor-pointer"
                             >
                                 {CATEGORIES.map((c) => (
-                                    <option key={c} value={c}>{c}</option>
+                                    <option key={c} value={c}>{T(c)}</option>
                                 ))}
                             </select>
                         </div>

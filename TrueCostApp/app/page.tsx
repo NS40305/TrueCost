@@ -160,7 +160,7 @@ export default function CalculatorPage() {
               className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all appearance-none cursor-pointer"
             >
               {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>{T(c)}</option>
               ))}
             </select>
           </div>
@@ -366,8 +366,8 @@ export default function CalculatorPage() {
         </button>
 
         {/* Collapsible content */}
-        <div className={`grid transition-all duration-300 ease-in-out ${subExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-          <div className="overflow-hidden">
+        {subExpanded && (
+          <div>
           <div className="px-5 pb-5 space-y-3">
             <div className="h-px bg-border" />
 
@@ -432,7 +432,7 @@ export default function CalculatorPage() {
                       className="w-full px-3 py-2.5 rounded-xl bg-surface border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all appearance-none cursor-pointer"
                     >
                       {CATEGORIES.map((c) => (
-                        <option key={c} value={c}>{c}</option>
+                        <option key={c} value={c}>{T(c)}</option>
                       ))}
                     </select>
                   </div>
@@ -489,7 +489,7 @@ export default function CalculatorPage() {
             )}
           </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="h-8" />
