@@ -338,7 +338,6 @@ export default function CalculatorPage() {
         </div>
       )}
 
-      <div className="h-8" />
 
       {/* ── Subscriptions Section ── */}
       <div className="glass-card overflow-hidden">
@@ -367,7 +366,8 @@ export default function CalculatorPage() {
         </button>
 
         {/* Collapsible content */}
-        <div className={`transition-all duration-300 ease-in-out overflow-hidden ${subExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+        <div className={`grid transition-all duration-300 ease-in-out ${subExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+          <div className="overflow-hidden">
           <div className="px-5 pb-5 space-y-3">
             <div className="h-px bg-border" />
 
@@ -487,6 +487,7 @@ export default function CalculatorPage() {
                 </div>
               </div>
             )}
+          </div>
           </div>
         </div>
       </div>

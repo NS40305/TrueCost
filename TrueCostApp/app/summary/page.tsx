@@ -9,6 +9,7 @@ import SegmentedControl from '@/components/SegmentedControl';
 import SummaryItem from '@/components/SummaryItem';
 import SpendingChart from '@/components/SpendingChart';
 import SpendingTrend from '@/components/SpendingTrend';
+import CategoryIcon from '@/components/CategoryIcon';
 
 type ReportMode = 'weekly' | 'monthly' | 'yearly';
 
@@ -91,6 +92,7 @@ export default function SummaryPage() {
     type SortDir = 'asc' | 'desc';
     const [sortMode, setSortMode] = useState<'date' | 'price'>('date');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
+    const [regretCategoryFilter, setRegretCategoryFilter] = useState<string>('all');
 
     const completedItems = useMemo(() => items.filter(i => i.location === 'summary' || (!i.location && i.completed)), [items]);
 
@@ -442,6 +444,14 @@ export default function SummaryPage() {
                     gaugeColor = 'bg-emerald-500';
                 }
 
+                // Categories present among regretted items (for filter chips)
+                const regretCategories = Array.from(new Set(regrettedItems.map(i => i.category)));
+
+                // Filtered + sorted regretted items
+                const displayedRegrets = regrettedItems
+                    .filter(i => regretCategoryFilter === 'all' || i.category === regretCategoryFilter)
+                    .sort((a, b) => b.price - a.price);
+
                 return (
                     <div className="worth-insight-card glass-card rounded-2xl overflow-hidden">
                         {/* Header */}
@@ -509,6 +519,67 @@ export default function SummaryPage() {
                                         <p className="text-sm font-bold text-purple-300 truncate">{topRegretItem.name}</p>
                                     </div>
                                     <p className="text-sm font-bold tabular-nums text-purple-400">{currencySymbol}{topRegretItem.price.toLocaleString()}</p>
+                                </div>
+                            )}
+
+                            {/* Category filter chips */}
+                            {regretCount > 0 && regretCategories.length > 1 && (
+                                <div className="flex gap-2 flex-wrap">
+                                    <button
+                                        onClick={() => setRegretCategoryFilter('all')}
+                                        className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                                            regretCategoryFilter === 'all'
+                                                ? 'bg-purple-500 text-white'
+                                                : 'bg-surface/60 text-muted hover:bg-surface-hover border border-border'
+                                        }`}
+                                    >
+                                        {T('allCategories')} ({regrettedItems.length})
+                                    </button>
+                                    {regretCategories.map(cat => {
+                                        const count = regrettedItems.filter(i => i.category === cat).length;
+                                        return (
+                                            <button
+                                                key={cat}
+                                                onClick={() => setRegretCategoryFilter(regretCategoryFilter === cat ? 'all' : cat)}
+                                                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                                                    regretCategoryFilter === cat
+                                                        ? 'bg-purple-500 text-white'
+                                                        : 'bg-surface/60 text-muted hover:bg-surface-hover border border-border'
+                                                }`}
+                                            >
+                                                <CategoryIcon category={cat} size={12} className={regretCategoryFilter === cat ? 'text-white' : 'text-purple-400'} />
+                                                {cat} ({count})
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {/* Full regretted items list — sorted by price desc */}
+                            {displayedRegrets.length > 0 && (
+                                <div className="space-y-2">
+                                    {displayedRegrets.map((item) => {
+                                        const time = getTimeNeeded(item.price, settings);
+                                        const completionDate = new Date(item.completedAt || item.addedAt);
+                                        const dateLabel = completionDate.toLocaleDateString(language === 'en' ? 'en-US' : language, {
+                                            month: 'short', day: 'numeric',
+                                        });
+                                        return (
+                                            <div key={item.id} className="flex items-center gap-3 bg-purple-500/5 hover:bg-purple-500/10 rounded-xl p-3 transition-colors">
+                                                <div className="w-8 h-8 rounded-lg bg-purple-500/15 flex items-center justify-center shrink-0">
+                                                    <CategoryIcon category={item.category} size={16} className="text-purple-400" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-semibold text-purple-300 truncate">{item.name}</p>
+                                                    <p className="text-[11px] text-muted">{item.category} • {dateLabel}</p>
+                                                </div>
+                                                <div className="text-right shrink-0">
+                                                    <p className="text-sm font-bold tabular-nums text-purple-400">{currencySymbol}{item.price.toLocaleString()}</p>
+                                                    <p className="text-[10px] text-muted tabular-nums">{formatHours(time.hours)} {T('hrs')}</p>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>
