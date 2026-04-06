@@ -14,6 +14,8 @@ interface SpendingTrendProps {
     mode: 'weekly' | 'monthly';
     /** The reference date that defines the current period */
     currentDate: Date;
+    /** Total cost from subscriptions for the current period */
+    subscriptionTotal?: number;
 }
 
 /** Mon 00:00 … next-Mon 00:00 for the ISO week containing `date`. */
@@ -41,7 +43,7 @@ function getMarketColors(currencyCode: string) {
     };
 }
 
-export default function SpendingTrend({ items, allItems, currencySymbol, currencyCode, language, mode, currentDate }: SpendingTrendProps) {
+export default function SpendingTrend({ items, allItems, currencySymbol, currencyCode, language, mode, currentDate, subscriptionTotal = 0 }: SpendingTrendProps) {
     const T = (key: string) => t(language, key);
     const marketColors = getMarketColors(currencyCode);
 
@@ -102,7 +104,7 @@ export default function SpendingTrend({ items, allItems, currencySymbol, currenc
 
     // ── Previous period comparison ──
     const comparison = useMemo(() => {
-        const currentTotal = items.reduce((sum, i) => sum + i.price, 0);
+        const currentTotal = items.reduce((sum, i) => sum + i.price, 0) + subscriptionTotal;
         let prevStart: Date, prevEnd: Date;
 
         if (mode === 'weekly') {

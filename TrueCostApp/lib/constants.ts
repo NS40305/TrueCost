@@ -45,3 +45,6 @@ export const QUICK_ADD_PRESETS: QuickAddItem[] = [
 
 export const DEFAULT_HOURS_PER_DAY = 8;
 export const DEFAULT_DAYS_PER_MONTH = 22;
+
+export const SUBSCRIPTION_CYCLES = ['weekly', 'monthly', 'yearly'] as const;
+export type SubscriptionCycleType = (typeof SUBSCRIPTION_CYCLES)[number];

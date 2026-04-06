@@ -25,6 +25,20 @@ export interface ShoppingItem {
     completed?: boolean;
     completedAt?: number;
     location?: 'list' | 'summary'; // New property to track explicit location
+    regretted?: boolean;
+    regrettedAt?: number;
+}
+
+export type SubscriptionCycle = 'weekly' | 'monthly' | 'yearly';
+
+export interface SubscriptionItem {
+    id: string;
+    name: string;
+    category: Category;
+    price: number;
+    cycle: SubscriptionCycle;
+    startDate: number; // timestamp
+    enabled: boolean;
 }
 
 export interface QuickAddPreset {
@@ -59,7 +73,15 @@ export interface AppState {
     togglePin: (id: string) => void;
     completeItem: (id: string, dateMs?: number) => void;
     uncompleteItem: (id: string) => void;
+    regretItem: (id: string) => void;
     clearItems: () => void;
+
+    /* subscriptions */
+    subscriptions: SubscriptionItem[];
+    addSubscription: (item: Omit<SubscriptionItem, 'id'>) => void;
+    updateSubscription: (id: string, updates: Partial<Omit<SubscriptionItem, 'id'>>) => void;
+    removeSubscription: (id: string) => void;
+    toggleSubscription: (id: string) => void;
 
     /* quick add presets */
     quickAddItems: QuickAddPreset[];
@@ -122,6 +144,7 @@ export const useStore = create<AppState>()(
                 set((s) => ({ settings: { ...s.settings, daysPerMonth: d } })),
 
             items: [],
+            subscriptions: [],
             quickAddItems: [...defaultQuickAddItems],
             addItem: (item) =>
                 set((s) => ({
@@ -165,7 +188,39 @@ export const useStore = create<AppState>()(
                             : i
                     ),
                 })),
+            regretItem: (id) =>
+                set((s) => ({
+                    items: s.items.map((i) =>
+                        i.id === id
+                            ? { ...i, regretted: !i.regretted, regrettedAt: i.regretted ? undefined : Date.now() }
+                            : i
+                    ),
+                })),
             clearItems: () => set({ items: [] }),
+
+            addSubscription: (item) =>
+                set((s) => ({
+                    subscriptions: [
+                        ...s.subscriptions,
+                        { ...item, id: crypto.randomUUID() },
+                    ],
+                })),
+            updateSubscription: (id, updates) =>
+                set((s) => ({
+                    subscriptions: s.subscriptions.map((i) =>
+                        i.id === id ? { ...i, ...updates } : i
+                    ),
+                })),
+            removeSubscription: (id) =>
+                set((s) => ({
+                    subscriptions: s.subscriptions.filter((i) => i.id !== id),
+                })),
+            toggleSubscription: (id) =>
+                set((s) => ({
+                    subscriptions: s.subscriptions.map((i) =>
+                        i.id === id ? { ...i, enabled: !i.enabled } : i
+                    ),
+                })),
 
             addQuickAddItem: (item) =>
                 set((s) => ({
@@ -193,8 +248,8 @@ export const useStore = create<AppState>()(
             setLanguage: (l) => set({ language: l }),
 
             exportData: () => {
-                const { settings, items, quickAddItems, darkMode, deepGreyMode, language } = get();
-                return JSON.stringify({ settings, items, quickAddItems, darkMode, deepGreyMode, language }, null, 2);
+                const { settings, items, subscriptions, quickAddItems, darkMode, deepGreyMode, language } = get();
+                return JSON.stringify({ settings, items, subscriptions, quickAddItems, darkMode, deepGreyMode, language }, null, 2);
             },
             importData: (json: string) => {
                 try {
@@ -203,6 +258,7 @@ export const useStore = create<AppState>()(
                         set({
                             settings: data.settings,
                             items: data.items,
+                            ...(Array.isArray(data.subscriptions) && { subscriptions: data.subscriptions }),
                             ...(Array.isArray(data.quickAddItems) && { quickAddItems: data.quickAddItems }),
                             ...(data.darkMode !== undefined && { darkMode: data.darkMode }),
                             ...(data.deepGreyMode !== undefined && { deepGreyMode: data.deepGreyMode }),
@@ -219,6 +275,7 @@ export const useStore = create<AppState>()(
                 set({
                     settings: { ...defaultSettings },
                     items: [],
+                    subscriptions: [],
                     quickAddItems: QUICK_ADD_PRESETS.map((p) => ({
                         id: crypto.randomUUID(),
                         name: p.name,
@@ -261,14 +318,45 @@ export const useStore = create<AppState>()(
                     const daysAgo = Math.floor(Math.random() * 365);
                     const ts = now - (daysAgo * msPerDay);
                     const baseItem = getRandomDemoItem();
+                    const price = Math.floor(Math.random() * (baseItem.max - baseItem.min + 1)) + baseItem.min;
+                    // ~15% of completed items are regretted, biased toward expensive ones
+                    const isRegretted = price > 80 ? Math.random() > 0.7 : Math.random() > 0.9;
                     demoItems.push({
                         id: crypto.randomUUID(),
                         name: baseItem.name,
                         category: baseItem.category,
-                        price: Math.floor(Math.random() * (baseItem.max - baseItem.min + 1)) + baseItem.min,
+                        price,
                         addedAt: ts - (Math.random() * msPerDay * 5), // Added sometime before completion
                         completed: true,
-                        completedAt: ts
+                        completedAt: ts,
+                        ...(isRegretted && { regretted: true, regrettedAt: ts + Math.random() * msPerDay * 3 }),
+                    });
+                }
+
+                // Guaranteed recent completed items (this week) including regretted ones for demo
+                const recentDemoItems = [
+                    { name: 'Dinner out', category: 'Food & Drink', price: 85, regretted: true },
+                    { name: 'Headphones', category: 'Electronics', price: 199, regretted: true },
+                    { name: 'Online Course', category: 'Education', price: 150, regretted: true },
+                    { name: 'Coffee', category: 'Food & Drink', price: 6, regretted: false },
+                    { name: 'Groceries', category: 'Food & Drink', price: 95, regretted: false },
+                    { name: 'Movie Ticket', category: 'Entertainment', price: 18, regretted: false },
+                    { name: 'Gas', category: 'Transport', price: 55, regretted: false },
+                    { name: 'Book', category: 'Education', price: 25, regretted: false },
+                ] as const;
+
+                for (const ri of recentDemoItems) {
+                    const hoursAgo = Math.floor(Math.random() * 72) + 1; // within last 3 days
+                    const ts = now - hoursAgo * 60 * 60 * 1000;
+                    demoItems.push({
+                        id: crypto.randomUUID(),
+                        name: ri.name,
+                        category: ri.category,
+                        price: ri.price,
+                        addedAt: ts - msPerDay,
+                        completed: true,
+                        completedAt: ts,
+                        ...(ri.regretted && { regretted: true, regrettedAt: ts + 60 * 60 * 1000 }),
                     });
                 }
 
@@ -292,10 +380,10 @@ export const useStore = create<AppState>()(
         }),
         {
             name: 'truecost-storage',
-            version: 1,
+            version: 2,
             migrate: (persisted: unknown, version: number) => {
                 const state = persisted as Record<string, unknown>;
-                if (version === 0 || !state.quickAddItems) {
+                if (version < 1 || !state.quickAddItems) {
                     state.quickAddItems = QUICK_ADD_PRESETS.map((p) => ({
                         id: crypto.randomUUID(),
                         name: p.name,
@@ -303,11 +391,15 @@ export const useStore = create<AppState>()(
                         category: p.category,
                     }));
                 }
+                if (version < 2 || !state.subscriptions) {
+                    state.subscriptions = [];
+                }
                 return state;
             },
             partialize: (state) => ({
                 settings: state.settings,
                 items: state.items,
+                subscriptions: state.subscriptions,
                 quickAddItems: state.quickAddItems,
                 darkMode: state.darkMode,
                 deepGreyMode: state.deepGreyMode,

@@ -7,6 +7,7 @@ import { CURRENCIES } from '@/lib/constants';
 import { t } from '@/lib/i18n';
 import { motion, useAnimation, PanInfo, useMotionValue, useMotionValueEvent } from 'framer-motion';
 import EditItemModal from './EditItemModal';
+import CategoryIcon from './CategoryIcon';
 
 interface SummaryItemProps {
     item: ShoppingItem;
@@ -16,7 +17,7 @@ interface SummaryItemProps {
 const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemProps) {
     const settings = useStore((s) => s.settings);
     const removeItem = useStore((s) => s.removeItem);
-    const uncompleteItem = useStore((s) => s.uncompleteItem);
+    const regretItem = useStore((s) => s.regretItem);
     const language = useStore((s) => s.language);
     const currencySymbol = CURRENCIES.find((c) => c.code === settings.currency)?.symbol || '$';
 
@@ -70,10 +71,11 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
         }
     }, [controls, ACTION_WIDTH_LEFT, ACTION_WIDTH_RIGHT, x]);
 
-    const handleUndo = useCallback(async () => {
-        await controls.start({ x: '100%', opacity: 0, transition: { duration: 0.25 } });
-        uncompleteItem(item.id);
-    }, [controls, uncompleteItem, item.id]);
+    const handleRegret = useCallback(async () => {
+        await controls.start({ x: 0, transition: { type: 'spring', bounce: 0, duration: 0.3 } });
+        openState.current = null;
+        regretItem(item.id);
+    }, [controls, regretItem, item.id]);
 
     const handleDelete = useCallback(async () => {
         await controls.start({ x: '-100%', opacity: 0, transition: { duration: 0.25 } });
@@ -82,18 +84,25 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
 
     return (
         <div className="relative overflow-hidden rounded-2xl bg-surface/50">
-            {/* Undo action (left background — revealed on swipe right) */}
+            {/* Regret action (left background — revealed on swipe right) */}
             <div className={`absolute inset-y-0 left-0 flex w-full z-0 transition-opacity duration-200 ${dragDir === 'right' ? 'opacity-100' : 'opacity-0'} pointer-events-none`}>
                 <button
-                    onClick={handleUndo}
-                    className={`flex-1 flex items-center justify-start pl-4 text-white font-semibold text-sm bg-amber-500 hover:bg-amber-600 transition-colors ${dragDir === 'right' ? 'pointer-events-auto' : 'pointer-events-none'}`}
+                    onClick={handleRegret}
+                    className={`flex-1 flex items-center justify-start pl-4 text-white font-semibold text-sm ${item.regretted ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-purple-500 hover:bg-purple-600'} transition-colors ${dragDir === 'right' ? 'pointer-events-auto' : 'pointer-events-none'}`}
                 >
                     <span className="flex flex-col items-center gap-1 w-[80px]">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="1 4 1 10 7 10" />
-                            <path d="M3.51 15a9 9 0 105.64-8.36L1 10" />
-                        </svg>
-                        <span className="text-xs">{T('undoToList')}</span>
+                        {item.regretted ? (
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                                <polyline points="22 4 12 14.01 9 11.01" />
+                            </svg>
+                        ) : (
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" />
+                                <line x1="1" y1="1" x2="23" y2="23" />
+                            </svg>
+                        )}
+                        <span className="text-xs">{item.regretted ? T('unregret') : T('undoToList')}</span>
                     </span>
                 </button>
             </div>
@@ -130,17 +139,22 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
                 }}
                 className="glass-card bg-surface p-4 flex items-center gap-4 relative z-10 cursor-pointer select-none"
             >
-                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: item.regretted ? 'rgba(168,85,247,0.15)' : 'rgba(var(--accent-rgb, 99,102,241),0.1)' }}>
+                    <CategoryIcon 
+                        category={item.category} 
+                        size={20} 
+                        className={item.regretted ? "text-purple-400" : "text-accent"} 
+                    />
                 </div>
                 <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm truncate">{item.name}</p>
-                    <p className="text-xs text-muted mt-0.5">{item.category} • {dateLabel}</p>
+                    <p className={`font-semibold text-sm truncate ${item.regretted ? 'text-purple-300' : ''}`}>{item.name}</p>
+                    <p className="text-xs text-muted mt-0.5">
+                        {item.category} • {dateLabel}
+                        {item.regretted && <span className="ml-1 text-purple-400">• {T('regretted')}</span>}
+                    </p>
                 </div>
                 <div className="text-right shrink-0">
-                    <p className="font-bold text-sm tabular-nums line-through decoration-muted/50">
+                    <p className={`font-bold text-sm tabular-nums line-through ${item.regretted ? 'decoration-purple-400/50 text-purple-300' : 'decoration-muted/50'}`}>
                         {currencySymbol}{item.price.toLocaleString()}
                     </p>
                     <p className="text-xs text-muted tabular-nums">
