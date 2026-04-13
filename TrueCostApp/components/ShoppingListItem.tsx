@@ -38,7 +38,6 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
     const openState = useRef<'left' | 'right' | null>(null);
     const ACTION_WIDTH_LEFT = 160;
     const ACTION_WIDTH_RIGHT = 100;
-    const FULL_SWIPE_THRESHOLD = 0.65; // % of screen width for full-swipe auto-action
 
     useMotionValueEvent(x, "change", (latest) => {
         if (latest > 5) setDragDir('right');
@@ -50,7 +49,6 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
         const offset = info.offset.x;
         const velocity = info.velocity.x;
         const currentX = x.get();
-        const screenW = window.innerWidth;
 
         // If card is already open, close on any reverse gesture
         if (openState.current === 'right' && (offset < -10 || currentX < ACTION_WIDTH_RIGHT * 0.5)) {
@@ -64,13 +62,7 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
             return;
         }
 
-        // Full-swipe right → auto-complete (iOS Mail style)
-        if (currentX > screenW * FULL_SWIPE_THRESHOLD || velocity > 1200) {
-            handleComplete();
-            return;
-        }
-
-        // Swipe right → reveal Complete button
+        // Swipe right → reveal Complete button (must tap to confirm)
         if (offset > ACTION_WIDTH_RIGHT * 0.35 || velocity > 300) {
             openState.current = 'right';
             controls.start({ x: ACTION_WIDTH_RIGHT, transition: SPRING_OPEN });
