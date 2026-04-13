@@ -19,8 +19,8 @@ const SPRING      = { type: 'spring' as const, stiffness: 800, damping: 57, rest
 const SPRING_EXIT = { type: 'spring' as const, stiffness: 600, damping: 35 };
 
 const SWIPE_COMMIT = 8;      // px to lock horizontal vs vertical (iOS ≈ 8)
-const SNAP_RATIO   = 0.4;    // 40 % of action width → snap open
-const FLICK_V      = 500;    // px/s flick → snap open
+const SNAP_RATIO   = 0.5;    // 50 % of action width → snap open (iOS Mail)
+const FLICK_V      = 300;    // px/s flick → snap open (iOS Mail ≈ 300)
 
 const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemProps) {
     const settings = useStore((s) => s.settings);

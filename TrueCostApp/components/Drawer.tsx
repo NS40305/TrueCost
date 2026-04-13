@@ -263,7 +263,7 @@ export default function Drawer() {
                         {T('demoMode')}
                     </button>
                     <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleFileChange} />
-                    <p className="text-center text-[10px] text-muted/40 pt-2">v0.2.0</p>
+                    <p className="text-center text-[10px] text-muted/40 pt-2">v1.1.0</p>
                 </div>
             </nav>
         </>

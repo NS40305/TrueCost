@@ -18,8 +18,8 @@ const SPRING      = { type: 'spring' as const, stiffness: 800, damping: 57, rest
 const SPRING_EXIT = { type: 'spring' as const, stiffness: 600, damping: 35 };
 
 const SWIPE_COMMIT = 8;      // px to lock horizontal vs vertical (iOS ≈ 8)
-const SNAP_RATIO   = 0.4;    // 40 % of action width → snap open
-const FLICK_V      = 500;    // px/s flick → snap open
+const SNAP_RATIO   = 0.5;    // 50 % of action width → snap open (iOS Mail)
+const FLICK_V      = 300;    // px/s flick → snap open (iOS Mail ≈ 300)
 
 const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListItemProps) {
     const settings = useStore((s) => s.settings);
@@ -46,6 +46,7 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
 
     const rightOpacity = useMotionValue(0);
     const leftOpacity  = useMotionValue(0);
+    const [debug, setDebug] = useState({ x: 0, vx: 0, dx: 0, dy: 0, committed: false, side: '-', open: '-', closing: false });
 
     useMotionValueEvent(x, 'change', (v) => {
         if (isClosing.current) return;
@@ -80,6 +81,17 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
         const cur = x.get();
         if (dragSide.current === 'positive' && cur < 0) x.set(0);
         else if (dragSide.current === 'negative' && cur > 0) x.set(0);
+
+        setDebug({
+            x: Math.round(x.get()),
+            vx: Math.round(info.velocity.x),
+            dx: Math.round(info.offset.x),
+            dy: Math.round(info.offset.y),
+            committed: dragCommitted.current,
+            side: dragSide.current || '-',
+            open: openState.current || '-',
+            closing: isClosing.current,
+        });
     }, [x]);
 
     const snapTo = useCallback((target: number, side: 'left' | 'right' | null) => {
@@ -93,6 +105,7 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
     const handleDragEnd = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         const vx = info.velocity.x;
         const cx = x.get();
+        setDebug(prev => ({ ...prev, x: Math.round(cx), vx: Math.round(vx) }));
 
         if (!dragCommitted.current) { snapTo(0, null); return; }
 
@@ -263,6 +276,14 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
                     </svg>
                 </div>
             </motion.div>
+
+            {/* Debug overlay */}
+            <div className="absolute top-0 right-0 z-50 bg-black/80 text-[9px] text-green-400 font-mono px-2 py-1 rounded-bl-lg pointer-events-none leading-tight">
+                <div>x:<b>{debug.x}</b> vx:<b>{debug.vx}</b></div>
+                <div>dx:{debug.dx} dy:{debug.dy}</div>
+                <div>commit:{debug.committed ? '✓' : '✗'} side:{debug.side}</div>
+                <div>open:{debug.open} closing:{debug.closing ? '✓' : '✗'}</div>
+            </div>
 
             {/* Edit modal */}
             <EditItemModal
