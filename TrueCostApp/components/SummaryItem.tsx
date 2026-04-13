@@ -14,6 +14,11 @@ interface SummaryItemProps {
     dateLabel: string;
 }
 
+/* iOS Mail-style spring config */
+const SPRING_OPEN  = { type: 'spring' as const, stiffness: 300, damping: 30 };
+const SPRING_CLOSE = { type: 'spring' as const, stiffness: 400, damping: 35 };
+const SPRING_SNAP  = { type: 'spring' as const, stiffness: 500, damping: 40 };
+
 const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemProps) {
     const settings = useStore((s) => s.settings);
     const removeItem = useStore((s) => s.removeItem);
@@ -31,7 +36,7 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
     const hasDragged = useRef(false);
     const openState = useRef<'left' | 'right' | null>(null);
     const ACTION_WIDTH_LEFT = 100;   // delete (swipe left)
-    const ACTION_WIDTH_RIGHT = 100;  // undo (swipe right)
+    const ACTION_WIDTH_RIGHT = 100;  // regret/undo (swipe right)
 
     useMotionValueEvent(x, "change", (latest) => {
         if (latest > 5) setDragDir('right');
@@ -43,42 +48,50 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
         const offset = info.offset.x;
         const velocity = info.velocity.x;
         const currentX = x.get();
+        const screenW = window.innerWidth;
 
-        // If card is already open, check if user is dragging back toward center
+        // If card is already open, close on any reverse gesture
         if (openState.current === 'right' && (offset < -10 || currentX < ACTION_WIDTH_RIGHT * 0.5)) {
             openState.current = null;
-            controls.start({ x: 0, transition: { type: 'spring', bounce: 0, duration: 0.3 } });
+            controls.start({ x: 0, transition: SPRING_CLOSE });
             return;
         }
         if (openState.current === 'left' && (offset > 10 || currentX > -ACTION_WIDTH_LEFT * 0.5)) {
             openState.current = null;
-            controls.start({ x: 0, transition: { type: 'spring', bounce: 0, duration: 0.3 } });
+            controls.start({ x: 0, transition: SPRING_CLOSE });
             return;
         }
 
-        // Swipe right → reveal Undo button
-        if (offset > ACTION_WIDTH_RIGHT * 0.4 || velocity > 500) {
+        // Full-swipe left → auto-delete (iOS Mail style)
+        if (currentX < -screenW * 0.65 || velocity < -1200) {
+            handleDelete();
+            return;
+        }
+
+        // Swipe right → reveal Regret/Undo button
+        if (offset > ACTION_WIDTH_RIGHT * 0.35 || velocity > 300) {
             openState.current = 'right';
-            controls.start({ x: ACTION_WIDTH_RIGHT, transition: { type: 'spring', bounce: 0, duration: 0.4 } });
+            controls.start({ x: ACTION_WIDTH_RIGHT, transition: SPRING_OPEN });
         }
         // Swipe left → reveal Delete button
-        else if (offset < -ACTION_WIDTH_LEFT * 0.4 || velocity < -500) {
+        else if (offset < -ACTION_WIDTH_LEFT * 0.35 || velocity < -300) {
             openState.current = 'left';
-            controls.start({ x: -ACTION_WIDTH_LEFT, transition: { type: 'spring', bounce: 0, duration: 0.4 } });
+            controls.start({ x: -ACTION_WIDTH_LEFT, transition: SPRING_OPEN });
         } else {
+            // Snap back with springy feel
             openState.current = null;
-            controls.start({ x: 0, transition: { type: 'spring', bounce: 0, duration: 0.4 } });
+            controls.start({ x: 0, transition: SPRING_SNAP });
         }
     }, [controls, ACTION_WIDTH_LEFT, ACTION_WIDTH_RIGHT, x]);
 
     const handleRegret = useCallback(async () => {
-        await controls.start({ x: 0, transition: { type: 'spring', bounce: 0, duration: 0.3 } });
+        await controls.start({ x: 0, transition: SPRING_CLOSE });
         openState.current = null;
         regretItem(item.id);
     }, [controls, regretItem, item.id]);
 
     const handleDelete = useCallback(async () => {
-        await controls.start({ x: '-100%', opacity: 0, transition: { duration: 0.25 } });
+        await controls.start({ x: '-100%', opacity: 0, transition: { type: 'spring', stiffness: 200, damping: 25 } });
         removeItem(item.id);
     }, [controls, removeItem, item.id]);
 
@@ -129,7 +142,8 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
                 drag="x"
                 dragDirectionLock
                 dragConstraints={{ left: -ACTION_WIDTH_LEFT, right: ACTION_WIDTH_RIGHT }}
-                dragElastic={0.2}
+                dragElastic={0.15}
+                dragMomentum={false}
                 onDragStart={() => { hasDragged.current = true; }}
                 onDragEnd={handleDragEnd}
                 animate={controls}

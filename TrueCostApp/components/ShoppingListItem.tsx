@@ -13,6 +13,11 @@ interface ShoppingListItemProps {
     item: ShoppingItem;
 }
 
+/* iOS Mail-style spring config */
+const SPRING_OPEN  = { type: 'spring' as const, stiffness: 300, damping: 30 };
+const SPRING_CLOSE = { type: 'spring' as const, stiffness: 400, damping: 35 };
+const SPRING_SNAP  = { type: 'spring' as const, stiffness: 500, damping: 40 };
+
 const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListItemProps) {
     const settings = useStore((s) => s.settings);
     const removeItem = useStore((s) => s.removeItem);
@@ -33,6 +38,7 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
     const openState = useRef<'left' | 'right' | null>(null);
     const ACTION_WIDTH_LEFT = 160;
     const ACTION_WIDTH_RIGHT = 100;
+    const FULL_SWIPE_THRESHOLD = 0.65; // % of screen width for full-swipe auto-action
 
     useMotionValueEvent(x, "change", (latest) => {
         if (latest > 5) setDragDir('right');
@@ -44,50 +50,58 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
         const offset = info.offset.x;
         const velocity = info.velocity.x;
         const currentX = x.get();
+        const screenW = window.innerWidth;
 
-        // If card is already open, check if user is dragging back toward center
+        // If card is already open, close on any reverse gesture
         if (openState.current === 'right' && (offset < -10 || currentX < ACTION_WIDTH_RIGHT * 0.5)) {
             openState.current = null;
-            controls.start({ x: 0, transition: { type: 'spring', bounce: 0, duration: 0.3 } });
+            controls.start({ x: 0, transition: SPRING_CLOSE });
             return;
         }
         if (openState.current === 'left' && (offset > 10 || currentX > -ACTION_WIDTH_LEFT * 0.5)) {
             openState.current = null;
-            controls.start({ x: 0, transition: { type: 'spring', bounce: 0, duration: 0.3 } });
+            controls.start({ x: 0, transition: SPRING_CLOSE });
             return;
         }
 
-        // Swipe right (Reveal Complete)
-        if (offset > ACTION_WIDTH_RIGHT * 0.4 || velocity > 500) {
-            openState.current = 'right';
-            controls.start({ x: ACTION_WIDTH_RIGHT, transition: { type: 'spring', bounce: 0, duration: 0.4 } });
+        // Full-swipe right → auto-complete (iOS Mail style)
+        if (currentX > screenW * FULL_SWIPE_THRESHOLD || velocity > 1200) {
+            handleComplete();
+            return;
         }
-        // Swipe left (Reveal actions)
-        else if (offset < -ACTION_WIDTH_LEFT * 0.4 || velocity < -500) {
+
+        // Swipe right → reveal Complete button
+        if (offset > ACTION_WIDTH_RIGHT * 0.35 || velocity > 300) {
+            openState.current = 'right';
+            controls.start({ x: ACTION_WIDTH_RIGHT, transition: SPRING_OPEN });
+        }
+        // Swipe left → reveal Pin + Delete buttons
+        else if (offset < -ACTION_WIDTH_LEFT * 0.35 || velocity < -300) {
             openState.current = 'left';
-            controls.start({ x: -ACTION_WIDTH_LEFT, transition: { type: 'spring', bounce: 0, duration: 0.4 } });
+            controls.start({ x: -ACTION_WIDTH_LEFT, transition: SPRING_OPEN });
         } else {
-            // Snap back
+            // Snap back with springy feel
             openState.current = null;
-            controls.start({ x: 0, transition: { type: 'spring', bounce: 0, duration: 0.4 } });
+            controls.start({ x: 0, transition: SPRING_SNAP });
         }
     }, [controls, ACTION_WIDTH_LEFT, ACTION_WIDTH_RIGHT, x]);
 
     const handleComplete = useCallback(async () => {
         setIsCompleting(true);
-        await controls.start({ x: '100%', opacity: 0, transition: { duration: 0.25 } });
+        await controls.start({ x: '100%', opacity: 0, transition: { type: 'spring', stiffness: 200, damping: 25 } });
         completeItem(item.id);
     }, [controls, completeItem, item.id]);
 
     const handlePin = useCallback(() => {
         togglePin(item.id);
         openState.current = null;
-        controls.start({ x: 0 });
+        controls.start({ x: 0, transition: SPRING_CLOSE });
     }, [togglePin, item.id, controls]);
 
-    const handleDelete = useCallback(() => {
+    const handleDelete = useCallback(async () => {
+        await controls.start({ x: '-100%', opacity: 0, transition: { type: 'spring', stiffness: 200, damping: 25 } });
         removeItem(item.id);
-    }, [removeItem, item.id]);
+    }, [controls, removeItem, item.id]);
 
     return (
         <div className="relative overflow-hidden rounded-2xl bg-surface/50">
@@ -151,7 +165,8 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
                 drag="x"
                 dragDirectionLock
                 dragConstraints={{ left: -ACTION_WIDTH_LEFT, right: ACTION_WIDTH_RIGHT }}
-                dragElastic={0.2}
+                dragElastic={0.15}
+                dragMomentum={false}
                 onDragStart={() => { hasDragged.current = true; }}
                 onDragEnd={handleDragEnd}
                 animate={controls}
