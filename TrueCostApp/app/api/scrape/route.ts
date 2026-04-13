@@ -104,61 +104,84 @@ export async function POST(req: Request) {
 
         const $ = cheerio.load(html);
 
-        // 1. Extract Title
-        let title = $('#productTitle').text().trim();
+        let title = '';
+        let price = 0;
+
+        // ── Strategy 1: JSON-LD structured data (most reliable) ──
+        $('script[type="application/ld+json"]').each((_, el) => {
+            if (price > 0) return;
+            try {
+                const ld = JSON.parse($(el).text());
+                const items = Array.isArray(ld) ? ld : [ld];
+                for (const item of items) {
+                    const node = item['@type'] === 'Product' ? item : item.mainEntity;
+                    if (!node || node['@type'] !== 'Product') continue;
+                    if (!title && node.name) title = node.name;
+                    const offer = Array.isArray(node.offers) ? node.offers[0] : node.offers;
+                    if (offer?.price != null) {
+                        price = parseFloat(String(offer.price));
+                    } else if (offer?.lowPrice != null) {
+                        price = parseFloat(String(offer.lowPrice));
+                    }
+                }
+            } catch { /* ignore malformed JSON-LD */ }
+        });
+
+        // ── Strategy 2: Meta tags ──
+        if (!price) {
+            const metaPrice = $('meta[name="product:price:amount"]').attr('content')
+                || $('meta[property="product:price:amount"]').attr('content')
+                || $('meta[name="og:price:amount"]').attr('content')
+                || $('meta[property="og:price:amount"]').attr('content')
+                || $('input#attach-base-product-price').attr('value')
+                || $('input#priceValue').attr('value');
+            if (metaPrice) price = parseFloat(metaPrice.replace(/,/g, '')) || 0;
+        }
         if (!title) {
-            title = $('meta[name="title"]').attr('content') || '';
+            title = $('meta[name="title"]').attr('content')
+                || $('meta[property="og:title"]').attr('content') || '';
             title = title.replace(/^Amazon\.[a-z.]+:\s*/i, '').trim();
         }
 
-        // 2. Extract Price
-        let priceStr = '';
+        // ── Strategy 3: DOM selectors ──
+        if (!title) title = $('#productTitle').text().trim();
 
-        // Try various common Amazon price selectors, prioritizing the main buybox
-        const priceSelectors = [
-            'div#corePriceDisplay_desktop_feature_div .priceToPay',
-            'div#corePrice_desktop .priceToPay',
-            'div#price .priceToPay',
-            'div#corePriceDisplay_desktop_feature_div .priceToPay span.a-offscreen',
-            'div#corePrice_desktop .priceToPay span.a-offscreen',
-            'div#price .priceToPay span.a-offscreen',
-            'span#priceblock_ourprice',
-            'span#priceblock_dealprice',
-            'div#corePriceDisplay_desktop_feature_div span.a-price-whole',
-            'span.a-color-price'
-        ];
+        if (!price) {
+            const priceSelectors = [
+                'span.a-price .a-offscreen',
+                '.priceToPay span.a-offscreen',
+                '#corePriceDisplay_desktop_feature_div .a-offscreen',
+                '#corePrice_desktop .a-offscreen',
+                '#price .a-offscreen',
+                '#priceblock_ourprice',
+                '#priceblock_dealprice',
+                '#priceblock_saleprice',
+                '#newBuyBoxPrice',
+                '#price_inside_buybox',
+                '.offer-price',
+                '#tp_price_block_total_price_ww .a-offscreen',
+            ];
 
-        for (const selector of priceSelectors) {
-            const el = $(selector).first();
-            if (el.length) {
-                // if we hit '.a-price-whole', we also need to find the fraction
-                if (selector.includes('a-price-whole')) {
-                    const fraction = el.next('.a-price-fraction').text().trim() || '00';
-                    priceStr = el.text().trim() + '.' + fraction;
-                } else {
-                    priceStr = el.text().trim();
+            for (const sel of priceSelectors) {
+                const txt = $(sel).first().text().trim();
+                if (txt) {
+                    const m = txt.replace(/,/g, '').match(/[\d]+(?:\.[\d]+)?/);
+                    if (m) { price = parseFloat(m[0]); break; }
                 }
-                if (priceStr) break;
             }
         }
 
-        // Fallback: If buybox price fails, grab the first general price that looks legitimate
-        if (!priceStr) {
-            const fallback = $('.priceToPay span.a-offscreen').first().text().trim();
-            if (fallback) priceStr = fallback;
-        }
-
-        // Clean up price string (e.g., "$1,299.99" -> 1299.99)
-        let price = 0;
-        if (priceStr) {
-            const match = priceStr.replace(/,/g, '').match(/\d+(\.\d+)?/);
-            if (match) {
-                price = parseFloat(match[0]);
+        // Fallback: whole + fraction
+        if (!price) {
+            const whole = $('span.a-price-whole').first().text().trim().replace(/[.,]$/, '');
+            if (whole) {
+                const frac = $('span.a-price-fraction').first().text().trim() || '00';
+                price = parseFloat(`${whole.replace(/,/g, '')}.${frac}`) || 0;
             }
         }
 
         return NextResponse.json({
-            title: title || 'Unknown Product',
+            title: (title || 'Unknown Product').substring(0, 200),
             price: price || 0,
             success: true
         });

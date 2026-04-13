@@ -14,15 +14,12 @@ interface SummaryItemProps {
     dateLabel: string;
 }
 
-/* iOS Mail — overdamped springs (no oscillation) */
-const SPRING      = { type: 'spring' as const, stiffness: 800, damping: 65, restDelta: 0.5, restSpeed: 10 };
-const SPRING_EXIT = { type: 'spring' as const, stiffness: 1200, damping: 70, restDelta: 1 };
-const TWEEN_SNAP  = { type: 'tween' as const, duration: 0.15, ease: [0.25, 1, 0.5, 1] } as const;
+const SPRING      = { type: 'tween' as const, duration: 0.3, ease: [0.25, 1, 0.5, 1] };
+const SPRING_EXIT = { type: 'tween' as const, duration: 0.22, ease: [0.25, 1, 0.5, 1] };
 
 const SWIPE_COMMIT = 8;      // px to lock horizontal vs vertical (iOS ≈ 8)
 const SNAP_RATIO   = 0.4;    // 40 % of action width → snap open
 const FLICK_V      = 500;    // px/s flick → snap open
-const SMALL_SNAP   = 20;     // px — below this use tween instead of spring
 
 const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemProps) {
     const settings = useStore((s) => s.settings);
@@ -116,10 +113,8 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
         cardOpacity.set(1);
         cardScale.set(1);
         setOpenSwipeId(side ? item.id : null);
-        const dist = Math.abs(x.get() - target);
-        const transition = dist < SMALL_SNAP && target === 0 ? TWEEN_SNAP : SPRING;
-        controls.start({ x: target, transition });
-    }, [controls, rightOpacity, leftOpacity, cardOpacity, cardScale, setOpenSwipeId, item.id, x]);
+        controls.start({ x: target, transition: SPRING });
+    }, [controls, rightOpacity, leftOpacity, cardOpacity, cardScale, setOpenSwipeId, item.id]);
 
     const handleDragEnd = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         const vx = info.velocity.x;
