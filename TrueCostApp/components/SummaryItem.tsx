@@ -14,8 +14,8 @@ interface SummaryItemProps {
     dateLabel: string;
 }
 
-const SPRING      = { type: 'tween' as const, duration: 0.3, ease: [0.25, 1, 0.5, 1] };
-const SPRING_EXIT = { type: 'tween' as const, duration: 0.22, ease: [0.25, 1, 0.5, 1] };
+const SPRING      = { type: 'tween' as const, duration: 0.3, ease: [0.25, 1, 0.5, 1] as [number, number, number, number] };
+const SPRING_EXIT = { type: 'tween' as const, duration: 0.22, ease: [0.25, 1, 0.5, 1] as [number, number, number, number] };
 
 const SWIPE_COMMIT = 8;      // px to lock horizontal vs vertical (iOS ≈ 8)
 const SNAP_RATIO   = 0.4;    // 40 % of action width → snap open
