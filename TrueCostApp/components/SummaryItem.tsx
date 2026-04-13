@@ -114,8 +114,8 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
         regretItem(item.id);
     }, [controls, regretItem, item.id, snapTo]);
 
-    const handleDelete = useCallback(async () => {
-        await controls.start({ x: '-100%', opacity: 0, transition: { type: 'spring', stiffness: 200, damping: 25 } });
+    const handleDelete = useCallback(() => {
+        controls.set({ x: '-100%', opacity: 0 });
         removeItem(item.id);
     }, [controls, removeItem, item.id]);
 

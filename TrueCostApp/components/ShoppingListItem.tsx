@@ -111,9 +111,9 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
         snapTo(0, null);
     }, [controls, ACTION_WIDTH_LEFT, ACTION_WIDTH_RIGHT, x, snapTo]);
 
-    const handleComplete = useCallback(async () => {
+    const handleComplete = useCallback(() => {
         setIsCompleting(true);
-        await controls.start({ x: '100%', opacity: 0, transition: { type: 'spring', stiffness: 200, damping: 25 } });
+        controls.set({ x: '100%', opacity: 0 });
         completeItem(item.id);
     }, [controls, completeItem, item.id]);
 
@@ -122,8 +122,8 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
         snapTo(0, null);
     }, [togglePin, item.id, snapTo]);
 
-    const handleDelete = useCallback(async () => {
-        await controls.start({ x: '-100%', opacity: 0, transition: { type: 'spring', stiffness: 200, damping: 25 } });
+    const handleDelete = useCallback(() => {
+        controls.set({ x: '-100%', opacity: 0 });
         removeItem(item.id);
     }, [controls, removeItem, item.id]);
 
