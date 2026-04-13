@@ -48,7 +48,7 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
     useEffect(() => {
         if (openSwipeId !== item.id && openState.current !== null) {
             openState.current = null;
-            controls.start({ x: 0, transition: SPRING_CONFIG });
+            controls.set({ x: 0 });
         }
     }, [openSwipeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -77,7 +77,7 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
         } else if (openSwipeId === item.id) {
             setOpenSwipeId(null);
         }
-        controls.start({ x: target, transition: SPRING_CONFIG });
+        controls.set({ x: target });
     }, [controls, setOpenSwipeId, item.id, openSwipeId]);
 
     const handleDragEnd = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {

@@ -49,7 +49,7 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
     useEffect(() => {
         if (openSwipeId !== item.id && openState.current !== null) {
             openState.current = null;
-            controls.start({ x: 0, transition: SPRING_CONFIG });
+            controls.set({ x: 0 });
         }
     }, [openSwipeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -80,7 +80,7 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
             setOpenSwipeId(null);
         }
         
-        controls.start({ x: target, transition: SPRING_CONFIG });
+        controls.set({ x: target });
     }, [controls, setOpenSwipeId, item.id, openSwipeId]);
 
     const handleDragEnd = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
