@@ -5,7 +5,7 @@ import { ShoppingItem, useStore } from '@/lib/store';
 import { getTimeNeeded, formatHours } from '@/lib/calculations';
 import { CURRENCIES } from '@/lib/constants';
 import { t } from '@/lib/i18n';
-import { motion, useAnimation, PanInfo, useMotionValue, useTransform } from 'framer-motion';
+import { motion, useAnimation, PanInfo, useMotionValue, useMotionValueEvent } from 'framer-motion';
 import EditItemModal from './EditItemModal';
 import CategoryIcon from './CategoryIcon';
 
@@ -14,14 +14,13 @@ interface SummaryItemProps {
     dateLabel: string;
 }
 
-/* iOS Mail-style spring config */
-const SPRING_OPEN  = { type: 'spring' as const, stiffness: 300, damping: 30 };
-const SPRING_CLOSE = { type: 'spring' as const, stiffness: 400, damping: 35 };
-const SPRING_SNAP  = { type: 'spring' as const, stiffness: 500, damping: 40 };
+/* iOS Mail — critically-damped spring, ~120 ms settle */
+const SPRING      = { type: 'spring' as const, stiffness: 800, damping: 50 };
+const SPRING_EXIT = { type: 'spring' as const, stiffness: 600, damping: 35 };
 
-/* Thresholds inspired by react-swipeable-list iOS mode */
-const SWIPE_START_THRESHOLD = 10;
-const SCROLL_START_THRESHOLD = 10;
+const SWIPE_COMMIT = 3;      // px to lock horizontal vs vertical
+const SNAP_RATIO   = 0.4;    // 40 % of action width → snap open
+const FLICK_V      = 500;    // px/s flick → snap open
 
 const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemProps) {
     const settings = useStore((s) => s.settings);
@@ -39,81 +38,91 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
     const hasDragged = useRef(false);
     const openState = useRef<'left' | 'right' | null>(null);
     const dragCommitted = useRef(false);
+    const isClosing = useRef(false);
+    const dragSide = useRef<'positive' | 'negative' | null>(null);
     const ACTION_WIDTH_LEFT = 100;   // delete (swipe left)
     const ACTION_WIDTH_RIGHT = 100;  // regret/undo (swipe right)
 
-    // Derive opacity from x motion value — no state, no re-renders
-    const rightOpacity = useTransform(x, [0, SWIPE_START_THRESHOLD], [0, 1]);
-    const leftOpacity  = useTransform(x, [0, -SWIPE_START_THRESHOLD], [0, 1]);
+    const rightOpacity = useMotionValue(0);
+    const leftOpacity  = useMotionValue(0);
+
+    useMotionValueEvent(x, 'change', (v) => {
+        if (isClosing.current) return;
+        rightOpacity.set(v > 0 ? 1 : 0);
+        leftOpacity.set(v < 0 ? 1 : 0);
+    });
 
     const handleDragStart = useCallback(() => {
+        controls.stop();
+        isClosing.current = false;
         hasDragged.current = true;
         dragCommitted.current = false;
-    }, []);
+        if (openState.current === 'right') dragSide.current = 'positive';
+        else if (openState.current === 'left') dragSide.current = 'negative';
+        else dragSide.current = null;
+    }, [controls]);
 
     const handleDrag = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-        // Angle-based direction lock (from react-swipeable-list octant approach)
         if (!dragCommitted.current) {
             const absX = Math.abs(info.offset.x);
             const absY = Math.abs(info.offset.y);
-
-            if (absY > SCROLL_START_THRESHOLD && absX < SWIPE_START_THRESHOLD) {
-                return;
-            }
-
-            if (absX >= SWIPE_START_THRESHOLD) {
-                dragCommitted.current = true;
-            }
-        }
-    }, []);
-
-    const handleDragEnd = useCallback(async (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-        const offset = info.offset.x;
-        const velocity = info.velocity.x;
-        const currentX = x.get();
-
-        // If drag never committed (too short or mostly vertical), snap back
-        if (!dragCommitted.current) {
-            controls.start({ x: 0, transition: SPRING_SNAP });
-            return;
+            if (absY > SWIPE_COMMIT && absX < SWIPE_COMMIT) return;
+            if (absX >= SWIPE_COMMIT) dragCommitted.current = true;
         }
 
-        // If card is already open, close on any reverse gesture
-        if (openState.current === 'right' && (offset < -10 || currentX < ACTION_WIDTH_RIGHT * 0.5)) {
-            openState.current = null;
-            controls.start({ x: 0, transition: SPRING_CLOSE });
-            return;
-        }
-        if (openState.current === 'left' && (offset > 10 || currentX > -ACTION_WIDTH_LEFT * 0.5)) {
-            openState.current = null;
-            controls.start({ x: 0, transition: SPRING_CLOSE });
-            return;
+        if (!dragSide.current) {
+            if (info.offset.x > 0) dragSide.current = 'positive';
+            else if (info.offset.x < 0) dragSide.current = 'negative';
         }
 
-        // Swipe right → reveal Regret/Undo button
-        if (offset > ACTION_WIDTH_RIGHT * 0.35 || velocity > 300) {
-            openState.current = 'right';
-            controls.start({ x: ACTION_WIDTH_RIGHT, transition: SPRING_OPEN });
+        const cur = x.get();
+        if (dragSide.current === 'positive' && cur < 0) x.set(0);
+        else if (dragSide.current === 'negative' && cur > 0) x.set(0);
+    }, [x]);
+
+    const snapTo = useCallback((target: number, side: 'left' | 'right' | null) => {
+        isClosing.current = true;
+        openState.current = side;
+        rightOpacity.set(side === 'right' ? 1 : 0);
+        leftOpacity.set(side === 'left' ? 1 : 0);
+        controls.start({ x: target, transition: SPRING });
+    }, [controls, rightOpacity, leftOpacity]);
+
+    const handleDragEnd = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+        const vx = info.velocity.x;
+        const cx = x.get();
+
+        if (!dragCommitted.current) { snapTo(0, null); return; }
+
+        // Already open → any reverse intent closes
+        if (openState.current === 'right' && (vx < -FLICK_V || cx < ACTION_WIDTH_RIGHT * 0.5)) {
+            snapTo(0, null); return;
         }
-        // Swipe left → reveal Delete button
-        else if (offset < -ACTION_WIDTH_LEFT * 0.35 || velocity < -300) {
-            openState.current = 'left';
-            controls.start({ x: -ACTION_WIDTH_LEFT, transition: SPRING_OPEN });
-        } else {
-            // Snap back
-            openState.current = null;
-            controls.start({ x: 0, transition: SPRING_SNAP });
+        if (openState.current === 'left' && (vx > FLICK_V || cx > -ACTION_WIDTH_LEFT * 0.5)) {
+            snapTo(0, null); return;
         }
-    }, [controls, ACTION_WIDTH_LEFT, ACTION_WIDTH_RIGHT, x]);
+
+        // From closed: flick or position past threshold → open
+        if (cx > ACTION_WIDTH_RIGHT * SNAP_RATIO || vx > FLICK_V) {
+            snapTo(ACTION_WIDTH_RIGHT, 'right'); return;
+        }
+        if (cx < -ACTION_WIDTH_LEFT * SNAP_RATIO || vx < -FLICK_V) {
+            snapTo(-ACTION_WIDTH_LEFT, 'left'); return;
+        }
+
+        snapTo(0, null);
+    }, [controls, ACTION_WIDTH_LEFT, ACTION_WIDTH_RIGHT, x, snapTo]);
 
     const handleRegret = useCallback(async () => {
-        await controls.start({ x: 0, transition: SPRING_CLOSE });
+        isClosing.current = true;
+        rightOpacity.set(0);
+        await controls.start({ x: 0, transition: SPRING });
         openState.current = null;
         regretItem(item.id);
-    }, [controls, regretItem, item.id]);
+    }, [controls, regretItem, item.id, rightOpacity]);
 
     const handleDelete = useCallback(async () => {
-        await controls.start({ x: '-100%', opacity: 0, transition: { type: 'spring', stiffness: 200, damping: 25 } });
+        await controls.start({ x: '-100%', opacity: 0, transition: SPRING_EXIT });
         removeItem(item.id);
     }, [controls, removeItem, item.id]);
 
@@ -170,7 +179,7 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
                 drag="x"
                 dragDirectionLock
                 dragConstraints={{ left: -ACTION_WIDTH_LEFT, right: ACTION_WIDTH_RIGHT }}
-                dragElastic={0.15}
+                dragElastic={0}
                 dragMomentum={false}
                 onDragStart={handleDragStart}
                 onDrag={handleDrag}
