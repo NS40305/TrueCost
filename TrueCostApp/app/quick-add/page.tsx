@@ -1,10 +1,14 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useStore, QuickAddPreset } from '@/lib/store';
 import { CATEGORIES, CURRENCIES, Category } from '@/lib/constants';
 import { t } from '@/lib/i18n';
-import { motion, useAnimation, useMotionValue, useMotionValueEvent, PanInfo } from 'framer-motion';
+import { motion, useAnimation, useMotionValue, useTransform, PanInfo } from 'framer-motion';
+
+const SWIPE_COMMIT = 8;
+const SNAP_RATIO   = 0.4;
+const FLICK_V      = 500;
 
 /* ── Single Quick Add Item Row ── */
 function QuickAddRow({
@@ -22,47 +26,79 @@ function QuickAddRow({
 }) {
     const controls = useAnimation();
     const x = useMotionValue(0);
-    const [dragDir, setDragDir] = useState<'left' | null>(null);
+    const openSwipeId = useStore((s) => s.openSwipeId);
+    const setOpenSwipeId = useStore((s) => s.setOpenSwipeId);
+
     const [editing, setEditing] = useState(false);
     const [editName, setEditName] = useState(item.name);
     const [editPrice, setEditPrice] = useState(item.price.toString());
     const [editCategory, setEditCategory] = useState<Category>(item.category);
     const hasDragged = useRef(false);
     const openState = useRef<'left' | null>(null);
+    const dragCommitted = useRef(false);
     const ACTION_WIDTH = 80;
 
-    useMotionValueEvent(x, 'change', (latest) => {
-        if (latest < -5) setDragDir('left');
-        else setDragDir(null);
-    });
+    // Opacity derived from motion value — no state, no re-renders
+    const leftOpacity = useTransform(x, [0, -SWIPE_COMMIT], [0, 1]);
 
-    const handleDragEnd = useCallback(
-        async (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-            const offset = info.offset.x;
-            const velocity = info.velocity.x;
-            const currentX = x.get();
+    // Auto-close when another item opens
+    useEffect(() => {
+        if (openSwipeId !== item.id && openState.current !== null) {
+            openState.current = null;
+            controls.set({ x: 0 });
+        }
+    }, [openSwipeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-            // Snap back from open
-            if (openState.current === 'left' && (offset > 10 || currentX > -ACTION_WIDTH * 0.5)) {
-                openState.current = null;
-                controls.start({ x: 0, transition: { type: 'spring', bounce: 0, duration: 0.3 } });
-                return;
-            }
+    const snapTo = useCallback((target: number, side: 'left' | null) => {
+        openState.current = side;
+        if (side !== null) {
+            setOpenSwipeId(item.id);
+        } else if (openSwipeId === item.id) {
+            setOpenSwipeId(null);
+        }
+        controls.set({ x: target });
+    }, [controls, setOpenSwipeId, item.id, openSwipeId]);
 
-            // Swipe left → reveal Delete
-            if (offset < -ACTION_WIDTH * 0.4 || velocity < -500) {
-                openState.current = 'left';
-                controls.start({ x: -ACTION_WIDTH, transition: { type: 'spring', bounce: 0, duration: 0.4 } });
-            } else {
-                openState.current = null;
-                controls.start({ x: 0, transition: { type: 'spring', bounce: 0, duration: 0.4 } });
-            }
-        },
-        [controls, ACTION_WIDTH, x]
-    );
+    const handleDragStart = useCallback(() => {
+        controls.stop();
+        hasDragged.current = true;
+        dragCommitted.current = false;
+    }, [controls]);
 
-    const handleDelete = useCallback(async () => {
-        await controls.start({ x: '-100%', opacity: 0, transition: { duration: 0.25 } });
+    const handleDrag = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+        if (!dragCommitted.current) {
+            const absX = Math.abs(info.offset.x);
+            const absY = Math.abs(info.offset.y);
+            if (absX < SWIPE_COMMIT && absY < SWIPE_COMMIT) return;
+            if (absX > absY) dragCommitted.current = true;
+            else return;
+        }
+    }, []);
+
+    const handleDragEnd = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+        const vx = info.velocity.x;
+        const cx = x.get();
+
+        if (!dragCommitted.current) {
+            snapTo(0, null);
+            return;
+        }
+
+        // Already open → reverse closes
+        if (openState.current === 'left' && (vx > FLICK_V || cx > -ACTION_WIDTH * 0.5)) {
+            snapTo(0, null); return;
+        }
+
+        // Swipe left → open delete
+        if (cx < -ACTION_WIDTH * SNAP_RATIO || vx < -FLICK_V) {
+            snapTo(-ACTION_WIDTH, 'left'); return;
+        }
+
+        snapTo(0, null);
+    }, [x, ACTION_WIDTH, snapTo]);
+
+    const handleDelete = useCallback(() => {
+        controls.set({ x: '-100%', opacity: 0 });
         onRemove(item.id);
     }, [controls, onRemove, item.id]);
 
@@ -152,18 +188,15 @@ function QuickAddRow({
     }
 
     return (
-        <div className="relative overflow-hidden rounded-2xl bg-surface/50">
+        <div className="relative overflow-hidden rounded-2xl bg-surface/50" onClick={(e) => e.stopPropagation()}>
             {/* Delete action behind */}
-            <div
-                className={`absolute inset-y-0 right-0 flex w-full z-0 transition-opacity duration-200 ${
-                    dragDir === 'left' ? 'opacity-100' : 'opacity-0'
-                } pointer-events-none`}
+            <motion.div
+                style={{ opacity: leftOpacity }}
+                className="absolute inset-y-0 right-0 flex w-full z-0"
             >
                 <button
                     onClick={handleDelete}
-                    className={`flex-1 flex items-center justify-end pr-4 text-white font-semibold text-sm bg-red-500 hover:bg-red-600 transition-colors ${
-                        dragDir === 'left' ? 'pointer-events-auto' : 'pointer-events-none'
-                    }`}
+                    className="flex-1 flex items-center justify-end pr-4 text-white font-semibold text-sm bg-red-500 hover:bg-red-600 transition-colors"
                 >
                     <span className="flex flex-col items-center gap-1 w-[60px]">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -173,7 +206,7 @@ function QuickAddRow({
                         <span className="text-xs">{T('delete')}</span>
                     </span>
                 </button>
-            </div>
+            </motion.div>
 
             {/* Foreground card */}
             <motion.div
@@ -181,15 +214,16 @@ function QuickAddRow({
                 drag="x"
                 dragDirectionLock
                 dragConstraints={{ left: -ACTION_WIDTH, right: 0 }}
-                dragElastic={0.2}
-                onDragStart={() => { hasDragged.current = true; }}
+                dragElastic={0}
+                dragMomentum={false}
+                onDragStart={handleDragStart}
+                onDrag={handleDrag}
                 onDragEnd={handleDragEnd}
                 animate={controls}
                 onClick={() => {
-                    if (!hasDragged.current) {
-                        setEditing(true);
-                    }
-                    hasDragged.current = false;
+                    if (hasDragged.current) { hasDragged.current = false; return; }
+                    if (openSwipeId && openSwipeId !== item.id) { setOpenSwipeId(null); return; }
+                    setEditing(true);
                 }}
                 className="glass-card p-4 flex items-center gap-3 relative z-10 cursor-pointer select-none"
             >

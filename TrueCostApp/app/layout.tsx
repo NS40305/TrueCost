@@ -49,7 +49,7 @@ export default function RootLayout({
                 const isDark = !s.state || s.state.darkMode !== false;
                 if (isDark) document.documentElement.classList.add('dark');
                 var c = isDark ? '#000000' : '#f5f5f7';
-                document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.content=c;});
+                document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.removeAttribute('media'); m.content=c;});
               } catch(e) { document.documentElement.classList.add('dark'); }
               try {
                 if ('serviceWorker' in navigator) {

@@ -22,7 +22,10 @@ export default function ClientShell({ children }: { children: ReactNode }) {
             const color = darkMode ? '#000000' : '#f5f5f7';
             document
                 .querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')
-                .forEach((m) => { m.content = color; });
+                .forEach((m) => { 
+                    m.removeAttribute('media');
+                    m.content = color; 
+                });
         }
     }, [darkMode, hydrated]);
 
