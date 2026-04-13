@@ -5,7 +5,7 @@ import { ShoppingItem, useStore } from '@/lib/store';
 import { getTimeNeeded, formatHours } from '@/lib/calculations';
 import { CURRENCIES } from '@/lib/constants';
 import { t } from '@/lib/i18n';
-import { motion, useAnimation, PanInfo, useMotionValue, useMotionValueEvent } from 'framer-motion';
+import { motion, useAnimation, PanInfo, useMotionValue, useTransform } from 'framer-motion';
 import EditItemModal from './EditItemModal';
 import CategoryIcon from './CategoryIcon';
 
@@ -31,24 +31,20 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
 
     const controls = useAnimation();
     const x = useMotionValue(0);
-    const [dragDir, setDragDir] = useState<'left' | 'right' | null>(null);
     const [editOpen, setEditOpen] = useState(false);
     const hasDragged = useRef(false);
     const openState = useRef<'left' | 'right' | null>(null);
     const ACTION_WIDTH_LEFT = 100;   // delete (swipe left)
     const ACTION_WIDTH_RIGHT = 100;  // regret/undo (swipe right)
 
-    useMotionValueEvent(x, "change", (latest) => {
-        if (latest > 5) setDragDir('right');
-        else if (latest < -5) setDragDir('left');
-        else setDragDir(null);
-    });
+    // Derive opacity from x motion value — no state, no re-renders
+    const rightOpacity = useTransform(x, [0, 8], [0, 1]);
+    const leftOpacity  = useTransform(x, [0, -8], [0, 1]);
 
     const handleDragEnd = useCallback(async (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         const offset = info.offset.x;
         const velocity = info.velocity.x;
         const currentX = x.get();
-        const screenW = window.innerWidth;
 
         // If card is already open, close on any reverse gesture
         if (openState.current === 'right' && (offset < -10 || currentX < ACTION_WIDTH_RIGHT * 0.5)) {
@@ -63,6 +59,7 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
         }
 
         // Full-swipe left → auto-delete (iOS Mail style)
+        const screenW = window.innerWidth;
         if (currentX < -screenW * 0.65 || velocity < -1200) {
             handleDelete();
             return;
@@ -98,10 +95,13 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
     return (
         <div className="relative overflow-hidden rounded-2xl bg-surface/50">
             {/* Regret action (left background — revealed on swipe right) */}
-            <div className={`absolute inset-y-0 left-0 flex w-full z-0 transition-opacity duration-200 ${dragDir === 'right' ? 'opacity-100' : 'opacity-0'} pointer-events-none`}>
+            <motion.div
+                style={{ opacity: rightOpacity }}
+                className="absolute inset-y-0 left-0 flex w-full z-0"
+            >
                 <button
                     onClick={handleRegret}
-                    className={`flex-1 flex items-center justify-start pl-4 text-white font-semibold text-sm ${item.regretted ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-purple-500 hover:bg-purple-600'} transition-colors ${dragDir === 'right' ? 'pointer-events-auto' : 'pointer-events-none'}`}
+                    className={`flex-1 flex items-center justify-start pl-4 text-white font-semibold text-sm ${item.regretted ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-purple-500 hover:bg-purple-600'} transition-colors`}
                 >
                     <span className="flex flex-col items-center gap-1 w-[80px]">
                         {item.regretted ? (
@@ -118,13 +118,16 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
                         <span className="text-xs">{item.regretted ? T('unregret') : T('undoToList')}</span>
                     </span>
                 </button>
-            </div>
+            </motion.div>
 
             {/* Delete action (right background — revealed on swipe left) */}
-            <div className={`absolute inset-y-0 right-0 flex w-full z-0 transition-opacity duration-200 ${dragDir === 'left' ? 'opacity-100' : 'opacity-0'} pointer-events-none`}>
+            <motion.div
+                style={{ opacity: leftOpacity }}
+                className="absolute inset-y-0 right-0 flex w-full z-0"
+            >
                 <button
                     onClick={handleDelete}
-                    className={`flex-1 flex items-center justify-end pr-4 text-white font-semibold text-sm bg-red-500 hover:bg-red-600 transition-colors ${dragDir === 'left' ? 'pointer-events-auto' : 'pointer-events-none'}`}
+                    className="flex-1 flex items-center justify-end pr-4 text-white font-semibold text-sm bg-red-500 hover:bg-red-600 transition-colors"
                 >
                     <span className="flex flex-col items-center gap-1 w-[80px]">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -134,7 +137,7 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
                         <span className="text-xs">{T('delete')}</span>
                     </span>
                 </button>
-            </div>
+            </motion.div>
 
             {/* Foreground card — slidable */}
             <motion.div

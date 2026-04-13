@@ -5,7 +5,7 @@ import { ShoppingItem, useStore } from '@/lib/store';
 import { getTimeNeeded, formatHours } from '@/lib/calculations';
 import { CURRENCIES } from '@/lib/constants';
 import { t } from '@/lib/i18n';
-import { motion, useAnimation, PanInfo, useMotionValue, useMotionValueEvent } from 'framer-motion';
+import { motion, useAnimation, PanInfo, useMotionValue, useTransform } from 'framer-motion';
 import EditItemModal from './EditItemModal';
 import CategoryIcon from './CategoryIcon';
 
@@ -32,18 +32,15 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
     const controls = useAnimation();
     const x = useMotionValue(0);
     const [isCompleting, setIsCompleting] = useState(false);
-    const [dragDir, setDragDir] = useState<'left' | 'right' | null>(null);
     const [editOpen, setEditOpen] = useState(false);
     const hasDragged = useRef(false);
     const openState = useRef<'left' | 'right' | null>(null);
     const ACTION_WIDTH_LEFT = 160;
     const ACTION_WIDTH_RIGHT = 100;
 
-    useMotionValueEvent(x, "change", (latest) => {
-        if (latest > 5) setDragDir('right');
-        else if (latest < -5) setDragDir('left');
-        else setDragDir(null);
-    });
+    // Derive opacity from x motion value — no state, no re-renders
+    const rightOpacity = useTransform(x, [0, 8], [0, 1]);
+    const leftOpacity  = useTransform(x, [0, -8], [0, 1]);
 
     const handleDragEnd = useCallback(async (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         const offset = info.offset.x;
@@ -98,10 +95,13 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
     return (
         <div className="relative overflow-hidden rounded-2xl bg-surface/50">
             {/* Complete action (left background — revealed on swipe right) */}
-            <div className={`absolute inset-y-0 left-0 flex ${isCompleting ? 'w-full z-20' : 'w-full z-0'} transition-opacity duration-200 ${dragDir === 'right' || isCompleting ? 'opacity-100' : 'opacity-0'} pointer-events-none`}>
+            <motion.div
+                style={{ opacity: isCompleting ? 1 : rightOpacity }}
+                className={`absolute inset-y-0 left-0 flex ${isCompleting ? 'w-full z-20' : 'w-full z-0'}`}
+            >
                 <button
                     onClick={handleComplete}
-                    className={`flex-1 flex items-center justify-start pl-4 text-white font-semibold text-sm bg-green-500 hover:bg-green-600 transition-colors cursor-pointer ${dragDir === 'right' || isCompleting ? 'pointer-events-auto' : 'pointer-events-none'}`}
+                    className="flex-1 flex items-center justify-start pl-4 text-white font-semibold text-sm bg-green-500 hover:bg-green-600 transition-colors cursor-pointer"
                 >
                     <span className="flex flex-col items-center gap-1 w-[80px]">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -110,13 +110,16 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
                         <span className="text-xs">{T('complete')}</span>
                     </span>
                 </button>
-            </div>
+            </motion.div>
 
             {/* Pin + Delete actions (right background — revealed on swipe left) */}
-            <div className={`absolute inset-y-0 right-0 flex w-full z-0 transition-opacity duration-200 ${dragDir === 'left' ? 'opacity-100' : 'opacity-0'} pointer-events-none`}>
+            <motion.div
+                style={{ opacity: leftOpacity }}
+                className="absolute inset-y-0 right-0 flex w-full z-0"
+            >
                 <button
                     onClick={handlePin}
-                    className={`flex-1 flex items-center justify-end text-white font-semibold text-sm bg-blue-500 hover:bg-blue-600 transition-colors ${dragDir === 'left' ? 'pointer-events-auto' : 'pointer-events-none'}`}
+                    className="flex-1 flex items-center justify-end text-white font-semibold text-sm bg-blue-500 hover:bg-blue-600 transition-colors"
                 >
                     <div className="w-[80px] flex flex-col items-center justify-center gap-1">
                         {item.pinned ? (
@@ -139,7 +142,7 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
                 </button>
                 <button
                     onClick={handleDelete}
-                    className={`w-[80px] shrink-0 flex items-center justify-center text-white font-semibold text-sm bg-red-500 hover:bg-red-600 transition-colors ${dragDir === 'left' ? 'pointer-events-auto' : 'pointer-events-none'}`}
+                    className="w-[80px] shrink-0 flex items-center justify-center text-white font-semibold text-sm bg-red-500 hover:bg-red-600 transition-colors"
                 >
                     <span className="flex flex-col items-center gap-1">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -149,7 +152,7 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
                         <span className="text-xs">{T('delete')}</span>
                     </span>
                 </button>
-            </div>
+            </motion.div>
 
             {/* Foreground card — slidable via framer-motion */}
             <motion.div
