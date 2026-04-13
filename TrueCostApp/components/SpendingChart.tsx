@@ -68,7 +68,7 @@ export default function SpendingChart({ items, currencySymbol, totalSpent, langu
     const R = 70;
     const SW = 32;
     const C = 2 * Math.PI * R;
-    const GAP = categories.length > 1 ? 4 : 0;
+    const GAP = 0;
 
     let offset = 0;
     const segments = categories.map((cat) => {
@@ -100,7 +100,7 @@ export default function SpendingChart({ items, currencySymbol, totalSpent, langu
             {/* Header */}
             <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
                         <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
                         <path d="M22 12A10 10 0 0 0 12 2v10z" />
                     </svg>
@@ -137,7 +137,7 @@ export default function SpendingChart({ items, currencySymbol, totalSpent, langu
             </div>
 
             {/* Divider */}
-            <div className="border-t border-border" />
+            <div style={{ borderTop: '1px solid var(--border-color)' }} />
 
             {/* Category Ranking */}
             <div className="space-y-1">
