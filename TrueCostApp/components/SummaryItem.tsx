@@ -19,6 +19,10 @@ const SPRING_OPEN  = { type: 'spring' as const, stiffness: 300, damping: 30 };
 const SPRING_CLOSE = { type: 'spring' as const, stiffness: 400, damping: 35 };
 const SPRING_SNAP  = { type: 'spring' as const, stiffness: 500, damping: 40 };
 
+/* Thresholds inspired by react-swipeable-list iOS mode */
+const SWIPE_START_THRESHOLD = 10;
+const SCROLL_START_THRESHOLD = 10;
+
 const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemProps) {
     const settings = useStore((s) => s.settings);
     const removeItem = useStore((s) => s.removeItem);
@@ -34,17 +38,45 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
     const [editOpen, setEditOpen] = useState(false);
     const hasDragged = useRef(false);
     const openState = useRef<'left' | 'right' | null>(null);
+    const dragCommitted = useRef(false);
     const ACTION_WIDTH_LEFT = 100;   // delete (swipe left)
     const ACTION_WIDTH_RIGHT = 100;  // regret/undo (swipe right)
 
     // Derive opacity from x motion value — no state, no re-renders
-    const rightOpacity = useTransform(x, [0, 8], [0, 1]);
-    const leftOpacity  = useTransform(x, [0, -8], [0, 1]);
+    const rightOpacity = useTransform(x, [0, SWIPE_START_THRESHOLD], [0, 1]);
+    const leftOpacity  = useTransform(x, [0, -SWIPE_START_THRESHOLD], [0, 1]);
+
+    const handleDragStart = useCallback(() => {
+        hasDragged.current = true;
+        dragCommitted.current = false;
+    }, []);
+
+    const handleDrag = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+        // Angle-based direction lock (from react-swipeable-list octant approach)
+        if (!dragCommitted.current) {
+            const absX = Math.abs(info.offset.x);
+            const absY = Math.abs(info.offset.y);
+
+            if (absY > SCROLL_START_THRESHOLD && absX < SWIPE_START_THRESHOLD) {
+                return;
+            }
+
+            if (absX >= SWIPE_START_THRESHOLD) {
+                dragCommitted.current = true;
+            }
+        }
+    }, []);
 
     const handleDragEnd = useCallback(async (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         const offset = info.offset.x;
         const velocity = info.velocity.x;
         const currentX = x.get();
+
+        // If drag never committed (too short or mostly vertical), snap back
+        if (!dragCommitted.current) {
+            controls.start({ x: 0, transition: SPRING_SNAP });
+            return;
+        }
 
         // If card is already open, close on any reverse gesture
         if (openState.current === 'right' && (offset < -10 || currentX < ACTION_WIDTH_RIGHT * 0.5)) {
@@ -58,13 +90,6 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
             return;
         }
 
-        // Full-swipe left → auto-delete (iOS Mail style)
-        const screenW = window.innerWidth;
-        if (currentX < -screenW * 0.65 || velocity < -1200) {
-            handleDelete();
-            return;
-        }
-
         // Swipe right → reveal Regret/Undo button
         if (offset > ACTION_WIDTH_RIGHT * 0.35 || velocity > 300) {
             openState.current = 'right';
@@ -75,7 +100,7 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
             openState.current = 'left';
             controls.start({ x: -ACTION_WIDTH_LEFT, transition: SPRING_OPEN });
         } else {
-            // Snap back with springy feel
+            // Snap back
             openState.current = null;
             controls.start({ x: 0, transition: SPRING_SNAP });
         }
@@ -147,7 +172,8 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
                 dragConstraints={{ left: -ACTION_WIDTH_LEFT, right: ACTION_WIDTH_RIGHT }}
                 dragElastic={0.15}
                 dragMomentum={false}
-                onDragStart={() => { hasDragged.current = true; }}
+                onDragStart={handleDragStart}
+                onDrag={handleDrag}
                 onDragEnd={handleDragEnd}
                 animate={controls}
                 onClick={() => {
