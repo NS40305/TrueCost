@@ -5,7 +5,7 @@ import { ShoppingItem, useStore } from '@/lib/store';
 import { getTimeNeeded, formatHours } from '@/lib/calculations';
 import { CURRENCIES } from '@/lib/constants';
 import { t } from '@/lib/i18n';
-import { motion, useAnimation, PanInfo, useMotionValue, useTransform } from 'framer-motion';
+import { motion, useAnimation, PanInfo, useMotionValue } from 'framer-motion';
 import EditItemModal from './EditItemModal';
 import CategoryIcon from './CategoryIcon';
 
@@ -17,6 +17,7 @@ interface SummaryItemProps {
 const SWIPE_COMMIT = 8;      // px to lock horizontal vs vertical (iOS ≈ 8)
 const SNAP_RATIO   = 0.4;    // 40 % of action width → snap open
 const FLICK_V      = 500;    // px/s flick → snap open
+const CROSS_PEEK   = 12;     // max px past center when closing from open state
 
 const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemProps) {
     const settings = useStore((s) => s.settings);
@@ -40,14 +41,16 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
     const ACTION_WIDTH_LEFT = 100;   // delete (swipe left)
     const ACTION_WIDTH_RIGHT = 100;  // regret/undo (swipe right)
 
-    const SPRING_CONFIG = { type: 'spring' as const, stiffness: 400, damping: 35 };
-
-    const rightOpacity = useTransform(x, [0, SWIPE_COMMIT], [0, 1]);
-    const leftOpacity  = useTransform(x, [0, -SWIPE_COMMIT], [0, 1]);
+    const rightOpacity = useMotionValue(0);
+    const leftOpacity  = useMotionValue(0);
+    const dragSide = useRef<'left' | 'right' | null>(null);
+    const wasOpenSide = useRef<'left' | 'right' | null>(null);
 
     useEffect(() => {
         if (openSwipeId !== item.id && openState.current !== null) {
             openState.current = null;
+            rightOpacity.set(0);
+            leftOpacity.set(0);
             controls.set({ x: 0 });
         }
     }, [openSwipeId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -57,6 +60,8 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
         isClosing.current = false;
         hasDragged.current = true;
         dragCommitted.current = false;
+        dragSide.current = null;
+        wasOpenSide.current = openState.current;
     }, [controls]);
 
     const handleDrag = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
@@ -64,21 +69,50 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
             const absX = Math.abs(info.offset.x);
             const absY = Math.abs(info.offset.y);
             if (absX < SWIPE_COMMIT && absY < SWIPE_COMMIT) return;
-            if (absX > absY) dragCommitted.current = true;
+            if (absX > absY) {
+                dragCommitted.current = true;
+                dragSide.current = info.offset.x > 0 ? 'right' : 'left';
+                if (!wasOpenSide.current) {
+                    rightOpacity.set(dragSide.current === 'right' ? 1 : 0);
+                    leftOpacity.set(dragSide.current === 'left' ? 1 : 0);
+                }
+            }
             else return;
         }
-    }, []);
+
+        const cur = x.get();
+
+        if (wasOpenSide.current) {
+            if (wasOpenSide.current === 'right') {
+                rightOpacity.set(cur > 2 ? 1 : 0);
+                leftOpacity.set(0);
+                if (cur < -CROSS_PEEK) x.set(-CROSS_PEEK);
+            } else {
+                leftOpacity.set(cur < -2 ? 1 : 0);
+                rightOpacity.set(0);
+                if (cur > CROSS_PEEK) x.set(CROSS_PEEK);
+            }
+            return;
+        }
+
+        if (dragSide.current === 'right' && cur < 0) x.set(0);
+        if (dragSide.current === 'left' && cur > 0) x.set(0);
+    }, [x, rightOpacity, leftOpacity]);
 
     const snapTo = useCallback((target: number, side: 'left' | 'right' | null) => {
         isClosing.current = false;
         openState.current = side;
         if (side !== null) {
             setOpenSwipeId(item.id);
+            rightOpacity.set(side === 'right' ? 1 : 0);
+            leftOpacity.set(side === 'left' ? 1 : 0);
         } else if (openSwipeId === item.id) {
             setOpenSwipeId(null);
+            rightOpacity.set(0);
+            leftOpacity.set(0);
         }
         controls.set({ x: target });
-    }, [controls, setOpenSwipeId, item.id, openSwipeId]);
+    }, [controls, setOpenSwipeId, item.id, openSwipeId, rightOpacity, leftOpacity]);
 
     const handleDragEnd = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         const vx = info.velocity.x;
@@ -89,12 +123,10 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
             return;
         }
 
-        // Already open → any reverse intent closes
-        if (openState.current === 'right' && (vx < -FLICK_V || cx < ACTION_WIDTH_RIGHT * 0.5)) {
-            snapTo(0, null); return;
-        }
-        if (openState.current === 'left' && (vx > FLICK_V || cx > -ACTION_WIDTH_LEFT * 0.5)) {
-            snapTo(0, null); return;
+        if (wasOpenSide.current) {
+            wasOpenSide.current = null;
+            snapTo(0, null);
+            return;
         }
 
         // From closed: flick or position past threshold → open
@@ -106,7 +138,7 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
         }
 
         snapTo(0, null);
-    }, [controls, ACTION_WIDTH_LEFT, ACTION_WIDTH_RIGHT, x, snapTo]);
+    }, [ACTION_WIDTH_LEFT, ACTION_WIDTH_RIGHT, x, snapTo]);
 
     const handleRegret = useCallback(() => {
         openState.current = null;
