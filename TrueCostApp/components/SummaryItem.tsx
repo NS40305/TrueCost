@@ -15,7 +15,7 @@ interface SummaryItemProps {
 }
 
 /* iOS Mail — critically-damped spring, ~120 ms settle */
-const SPRING      = { type: 'spring' as const, stiffness: 800, damping: 50 };
+const SPRING      = { type: 'spring' as const, stiffness: 800, damping: 57, restDelta: 0.5 };
 const SPRING_EXIT = { type: 'spring' as const, stiffness: 600, damping: 35 };
 
 const SWIPE_COMMIT = 3;      // px to lock horizontal vs vertical
