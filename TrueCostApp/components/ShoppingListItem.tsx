@@ -47,22 +47,11 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
 
     const rightOpacity = useMotionValue(0);
     const leftOpacity  = useMotionValue(0);
-    const cardOpacity  = useMotionValue(1);
-    const cardScale    = useMotionValue(1);
-
-    const dragRange = Math.max(ACTION_WIDTH_LEFT, ACTION_WIDTH_RIGHT);
 
     useMotionValueEvent(x, 'change', (v) => {
-        if (isClosing.current) {
-            cardOpacity.set(1);
-            cardScale.set(1);
-            return;
-        }
-        const progress = Math.min(Math.abs(v) / dragRange, 1);
-        cardOpacity.set(1 - progress * 0.25);
-        cardScale.set(1 - progress * 0.05);
-        rightOpacity.set(v > 0 ? 1 : 0);
-        leftOpacity.set(v < 0 ? 1 : 0);
+        if (isClosing.current) return;
+        rightOpacity.set(v > 2 ? 1 : 0);
+        leftOpacity.set(v < -2 ? 1 : 0);
     });
 
     useEffect(() => {
@@ -71,8 +60,6 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
             isClosing.current = true;
             rightOpacity.set(0);
             leftOpacity.set(0);
-            cardOpacity.set(1);
-            cardScale.set(1);
             controls.start({ x: 0, transition: SPRING });
         }
     }, [openSwipeId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -111,11 +98,9 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
         openState.current = side;
         rightOpacity.set(side === 'right' ? 1 : 0);
         leftOpacity.set(side === 'left' ? 1 : 0);
-        cardOpacity.set(1);
-        cardScale.set(1);
         setOpenSwipeId(side ? item.id : null);
         controls.start({ x: target, transition: SPRING });
-    }, [controls, rightOpacity, leftOpacity, cardOpacity, cardScale, setOpenSwipeId, item.id]);
+    }, [controls, rightOpacity, leftOpacity, setOpenSwipeId, item.id]);
 
     const handleDragEnd = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         const vx = info.velocity.x;
@@ -126,8 +111,6 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
             openState.current = null;
             rightOpacity.set(0);
             leftOpacity.set(0);
-            cardOpacity.set(1);
-            cardScale.set(1);
             controls.start({ x: 0, transition: { duration: 0 } });
             return;
         }
@@ -231,7 +214,7 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
 
             {/* Foreground card — slidable via framer-motion */}
             <motion.div
-                style={{ x, opacity: cardOpacity, scale: cardScale, touchAction: 'pan-y', willChange: 'transform', transform: 'translateZ(0)' }}
+                style={{ x, touchAction: 'pan-y', willChange: 'transform', transform: 'translateZ(0)' }}
                 drag="x"
                 dragDirectionLock
                 dragConstraints={{ left: -ACTION_WIDTH_LEFT, right: ACTION_WIDTH_RIGHT }}
