@@ -10,16 +10,14 @@ import NumberTicker from '@/components/NumberTicker';
 import ResultCards from '@/components/ResultCards';
 
 export default function SettingsPage() {
-    const {
-        settings,
-        setIncomeType,
-        setRate,
-        setCurrency,
-        setHoursPerDay,
-        setDaysPerMonth,
-        language,
-        items,
-    } = useStore();
+    const settings = useStore((s) => s.settings);
+    const setIncomeType = useStore((s) => s.setIncomeType);
+    const setRate = useStore((s) => s.setRate);
+    const setCurrency = useStore((s) => s.setCurrency);
+    const setHoursPerDay = useStore((s) => s.setHoursPerDay);
+    const setDaysPerMonth = useStore((s) => s.setDaysPerMonth);
+    const language = useStore((s) => s.language);
+    const items = useStore((s) => s.items);
 
     const T = (key: string) => t(language, key);
 

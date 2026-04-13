@@ -1,17 +1,43 @@
 import { NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
 
+const ALLOWED_HOSTS = [
+    /^(www\.)?amazon\.(com|co\.uk|ca|de|fr|it|es|co\.jp|com\.au|in|com\.br|com\.mx|nl|sg|ae|sa|pl|se|com\.be|com\.tr|eg)$/,
+    /^a\.co$/,
+    /^amzn\.to$/,
+];
+
+const FETCH_TIMEOUT_MS = 8000;
+const MAX_BODY_BYTES = 2 * 1024 * 1024; // 2 MB
+
 export async function POST(req: Request) {
     try {
-        const { url } = await req.json();
+        const { url: rawUrl } = await req.json();
 
-        if (!url || (!url.includes('amazon.') && !url.includes('a.co') && !url.includes('amzn.to'))) {
-            return NextResponse.json({ error: 'Invalid Amazon URL' }, { status: 400 });
+        if (!rawUrl || typeof rawUrl !== 'string') {
+            return NextResponse.json({ error: 'Missing URL' }, { status: 400 });
         }
 
-        // We use nextjs fetch with cache: no-store and advanced generic headers 
-        // to look like a real browser navigating from google
-        const response = await fetch(url, {
+        let parsed: URL;
+        try {
+            parsed = new URL(rawUrl);
+        } catch {
+            return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 });
+        }
+
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+            return NextResponse.json({ error: 'Only HTTP(S) URLs are allowed' }, { status: 400 });
+        }
+
+        if (!ALLOWED_HOSTS.some(re => re.test(parsed.hostname))) {
+            return NextResponse.json({ error: 'Only Amazon URLs are supported' }, { status: 400 });
+        }
+
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+        const response = await fetch(parsed.href, {
+            signal: controller.signal,
             cache: 'no-store',
             next: { revalidate: 0 },
             headers: {
@@ -31,11 +57,22 @@ export async function POST(req: Request) {
             }
         });
 
+        clearTimeout(timer);
+
         if (!response.ok) {
             throw new Error(`Failed to fetch: ${response.status}`);
         }
 
+        const contentLength = parseInt(response.headers.get('content-length') || '0', 10);
+        if (contentLength > MAX_BODY_BYTES) {
+            return NextResponse.json({ error: 'Response too large' }, { status: 413 });
+        }
+
         const html = await response.text();
+
+        if (html.length > MAX_BODY_BYTES) {
+            return NextResponse.json({ error: 'Response too large' }, { status: 413 });
+        }
 
         // Check if we hit a captcha
         if (html.includes('api-services-support@amazon.com') || html.includes('Enter the characters you see below')) {

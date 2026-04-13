@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useStore } from '@/lib/store';
 import { getTimeNeeded, formatHours } from '@/lib/calculations';
 import { CATEGORIES, CURRENCIES } from '@/lib/constants';
@@ -17,7 +17,9 @@ export default function ListPage() {
     const [filterCategory, setFilterCategory] = useState('all');
     const [search, setSearch] = useState('');
 
+    const setOpenSwipeId = useStore((s) => s.setOpenSwipeId);
     const T = (key: string) => t(language, key);
+    const closeSwipe = useCallback(() => setOpenSwipeId(null), [setOpenSwipeId]);
 
     const currencySymbol = CURRENCIES.find((c) => c.code === settings.currency)?.symbol || '$';
 
@@ -57,13 +59,13 @@ export default function ListPage() {
                 return a.price - b.price;
             }
         });
-    }, [filtered, priceSort, settings]);
+    }, [filtered, priceSort]);
 
     const totalPrice = sorted.reduce((sum, i) => sum + i.price, 0);
     const totalHours = sorted.reduce((sum, i) => sum + getTimeNeeded(i.price, settings).hours, 0);
 
     return (
-        <div className="max-w-lg mx-auto px-4 py-8 space-y-6">
+        <div className="max-w-lg mx-auto px-4 py-8 space-y-6" onClick={closeSwipe}>
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
@@ -93,7 +95,7 @@ export default function ListPage() {
                     >
                         <option value="all">{T('all')}</option>
                         {CATEGORIES.map((c) => (
-                            <option key={c} value={c}>{c}</option>
+                            <option key={c} value={c}>{T(c)}</option>
                         ))}
                     </select>
                 </div>

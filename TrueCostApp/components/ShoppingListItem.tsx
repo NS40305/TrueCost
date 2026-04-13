@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, memo, useCallback, useRef } from 'react';
+import { useState, memo, useCallback, useRef, useEffect } from 'react';
 import { ShoppingItem, useStore } from '@/lib/store';
 import { getTimeNeeded, formatHours } from '@/lib/calculations';
 import { CURRENCIES } from '@/lib/constants';
@@ -13,13 +13,14 @@ interface ShoppingListItemProps {
     item: ShoppingItem;
 }
 
-/* iOS Mail — critically-damped spring, ~120 ms settle */
+/* iOS Mail — critically-damped springs */
 const SPRING      = { type: 'spring' as const, stiffness: 800, damping: 57, restDelta: 0.5 };
-const SPRING_EXIT = { type: 'spring' as const, stiffness: 600, damping: 35 };
+const SPRING_EXIT = { type: 'spring' as const, stiffness: 600, damping: 49, restDelta: 0.5 };
 
 const SWIPE_COMMIT = 8;      // px to lock horizontal vs vertical (iOS ≈ 8)
-const SNAP_RATIO   = 0.5;    // 50 % of action width → snap open (iOS Mail)
-const FLICK_V      = 300;    // px/s flick → snap open (iOS Mail ≈ 300)
+const SNAP_RATIO   = 0.4;    // 40 % of action width → snap open
+const FLICK_V      = 500;    // px/s flick → snap open
+const LERP_ALPHA   = 0.65;   // low-pass filter: 0→heavy smooth, 1→raw input
 
 const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListItemProps) {
     const settings = useStore((s) => s.settings);
@@ -27,6 +28,8 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
     const togglePin = useStore((s) => s.togglePin);
     const completeItem = useStore((s) => s.completeItem);
     const language = useStore((s) => s.language);
+    const openSwipeId = useStore((s) => s.openSwipeId);
+    const setOpenSwipeId = useStore((s) => s.setOpenSwipeId);
     const currencySymbol = CURRENCIES.find((c) => c.code === settings.currency)?.symbol || '$';
 
     const T = (key: string) => t(language, key);
@@ -41,28 +44,52 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
     const dragCommitted = useRef(false);
     const isClosing = useRef(false);
     const dragSide = useRef<'positive' | 'negative' | null>(null);
+    const smoothX = useRef(0);
     const ACTION_WIDTH_LEFT = 160;
     const ACTION_WIDTH_RIGHT = 100;
 
     const rightOpacity = useMotionValue(0);
     const leftOpacity  = useMotionValue(0);
-    const [debug, setDebug] = useState({ x: 0, vx: 0, dx: 0, dy: 0, committed: false, side: '-', open: '-', closing: false });
+    const cardOpacity  = useMotionValue(1);
+    const cardScale    = useMotionValue(1);
+
+    const dragRange = Math.max(ACTION_WIDTH_LEFT, ACTION_WIDTH_RIGHT);
 
     useMotionValueEvent(x, 'change', (v) => {
-        if (isClosing.current) return;
+        if (isClosing.current) {
+            cardOpacity.set(1);
+            cardScale.set(1);
+            return;
+        }
+        const progress = Math.min(Math.abs(v) / dragRange, 1);
+        cardOpacity.set(1 - progress * 0.25);
+        cardScale.set(1 - progress * 0.05);
         rightOpacity.set(v > 0 ? 1 : 0);
         leftOpacity.set(v < 0 ? 1 : 0);
     });
 
+    useEffect(() => {
+        if (openSwipeId !== item.id && openState.current !== null) {
+            openState.current = null;
+            isClosing.current = true;
+            rightOpacity.set(0);
+            leftOpacity.set(0);
+            cardOpacity.set(1);
+            cardScale.set(1);
+            controls.start({ x: 0, transition: SPRING });
+        }
+    }, [openSwipeId]); // eslint-disable-line react-hooks/exhaustive-deps
+
     const handleDragStart = useCallback(() => {
         controls.stop();
         isClosing.current = false;
+        smoothX.current = x.get();
         hasDragged.current = true;
         dragCommitted.current = false;
         if (openState.current === 'right') dragSide.current = 'positive';
         else if (openState.current === 'left') dragSide.current = 'negative';
         else dragSide.current = null;
-    }, [controls]);
+    }, [controls, x]);
 
     const handleDrag = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         if (!dragCommitted.current) {
@@ -78,20 +105,14 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
             else if (info.offset.x < 0) dragSide.current = 'negative';
         }
 
-        const cur = x.get();
-        if (dragSide.current === 'positive' && cur < 0) x.set(0);
-        else if (dragSide.current === 'negative' && cur > 0) x.set(0);
+        // Low-pass filter: smooth = prev + alpha * (raw - prev)
+        const raw = x.get();
+        const filtered = smoothX.current + LERP_ALPHA * (raw - smoothX.current);
+        smoothX.current = filtered;
+        x.set(filtered);
 
-        setDebug({
-            x: Math.round(x.get()),
-            vx: Math.round(info.velocity.x),
-            dx: Math.round(info.offset.x),
-            dy: Math.round(info.offset.y),
-            committed: dragCommitted.current,
-            side: dragSide.current || '-',
-            open: openState.current || '-',
-            closing: isClosing.current,
-        });
+        if (dragSide.current === 'positive' && filtered < 0) x.set(0);
+        else if (dragSide.current === 'negative' && filtered > 0) x.set(0);
     }, [x]);
 
     const snapTo = useCallback((target: number, side: 'left' | 'right' | null) => {
@@ -99,13 +120,15 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
         openState.current = side;
         rightOpacity.set(side === 'right' ? 1 : 0);
         leftOpacity.set(side === 'left' ? 1 : 0);
+        cardOpacity.set(1);
+        cardScale.set(1);
+        setOpenSwipeId(side ? item.id : null);
         controls.start({ x: target, transition: SPRING });
-    }, [controls, rightOpacity, leftOpacity]);
+    }, [controls, rightOpacity, leftOpacity, cardOpacity, cardScale, setOpenSwipeId, item.id]);
 
     const handleDragEnd = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         const vx = info.velocity.x;
         const cx = x.get();
-        setDebug(prev => ({ ...prev, x: Math.round(cx), vx: Math.round(vx) }));
 
         if (!dragCommitted.current) { snapTo(0, null); return; }
 
@@ -145,7 +168,7 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
     }, [controls, removeItem, item.id]);
 
     return (
-        <div className="relative overflow-hidden rounded-2xl bg-surface/50">
+        <div className="relative overflow-hidden rounded-2xl bg-surface/50" onClick={(e) => e.stopPropagation()}>
             {/* Complete action (left background — revealed on swipe right) */}
             <motion.div
                 style={{ opacity: isCompleting ? 1 : rightOpacity }}
@@ -208,7 +231,7 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
 
             {/* Foreground card — slidable via framer-motion */}
             <motion.div
-                style={{ x, touchAction: 'pan-y', willChange: 'transform', transform: 'translateZ(0)' }}
+                style={{ x, opacity: cardOpacity, scale: cardScale, touchAction: 'pan-y', willChange: 'transform', transform: 'translateZ(0)' }}
                 drag="x"
                 dragDirectionLock
                 dragConstraints={{ left: -ACTION_WIDTH_LEFT, right: ACTION_WIDTH_RIGHT }}
@@ -219,8 +242,9 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
                 onDragEnd={handleDragEnd}
                 animate={controls}
                 onClick={() => {
-                    if (!hasDragged.current) setEditOpen(true);
-                    hasDragged.current = false;
+                    if (hasDragged.current) { hasDragged.current = false; return; }
+                    if (openSwipeId && openSwipeId !== item.id) { setOpenSwipeId(null); return; }
+                    setEditOpen(true);
                 }}
                 className="glass-card p-4 flex items-center gap-4 relative z-10 cursor-pointer select-none"
             >
@@ -276,14 +300,6 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
                     </svg>
                 </div>
             </motion.div>
-
-            {/* Debug overlay */}
-            <div className="absolute top-0 right-0 z-50 bg-black/80 text-[9px] text-green-400 font-mono px-2 py-1 rounded-bl-lg pointer-events-none leading-tight">
-                <div>x:<b>{debug.x}</b> vx:<b>{debug.vx}</b></div>
-                <div>dx:{debug.dx} dy:{debug.dy}</div>
-                <div>commit:{debug.committed ? '✓' : '✗'} side:{debug.side}</div>
-                <div>open:{debug.open} closing:{debug.closing ? '✓' : '✗'}</div>
-            </div>
 
             {/* Edit modal */}
             <EditItemModal

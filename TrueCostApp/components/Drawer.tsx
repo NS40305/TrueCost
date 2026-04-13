@@ -109,7 +109,10 @@ export default function Drawer() {
         const reader = new FileReader();
         reader.onload = () => {
             const ok = importData(reader.result as string);
-            if (!ok) alert('Invalid file format.');
+            if (!ok) alert(T('importError') || 'Invalid file format.');
+        };
+        reader.onerror = () => {
+            alert(T('importError') || 'Failed to read file.');
         };
         reader.readAsText(file);
         e.target.value = '';
@@ -263,7 +266,7 @@ export default function Drawer() {
                         {T('demoMode')}
                     </button>
                     <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleFileChange} />
-                    <p className="text-center text-[10px] text-muted/40 pt-2">v1.1.0</p>
+                    <p className="text-center text-[10px] text-muted/40 pt-2">v0.2.0</p>
                 </div>
             </nav>
         </>

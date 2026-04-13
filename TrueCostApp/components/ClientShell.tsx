@@ -9,6 +9,7 @@ import InstallPrompt from './InstallPrompt';
 
 export default function ClientShell({ children }: { children: ReactNode }) {
     const darkMode = useStore((s) => s.darkMode);
+    const language = useStore((s) => s.language);
     const [hydrated, setHydrated] = useState(false);
 
     useEffect(() => {
@@ -20,6 +21,12 @@ export default function ClientShell({ children }: { children: ReactNode }) {
             document.documentElement.classList.toggle('dark', darkMode);
         }
     }, [darkMode, hydrated]);
+
+    useEffect(() => {
+        if (hydrated) {
+            document.documentElement.lang = language;
+        }
+    }, [language, hydrated]);
 
     return (
         <>

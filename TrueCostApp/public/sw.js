@@ -2,7 +2,9 @@ const CACHE_NAME = 'truecost-v2';
 const STATIC_ASSETS = [
     '/',
     '/list',
+    '/summary',
     '/settings',
+    '/quick-add',
     '/manifest.webmanifest',
     '/icons/icon-192.png',
     '/icons/icon-512.png',

@@ -97,6 +97,8 @@ export interface AppState {
     setDrawerOpen: (open: boolean) => void;
     language: Language;
     setLanguage: (l: Language) => void;
+    openSwipeId: string | null;
+    setOpenSwipeId: (id: string | null) => void;
 
     /* data management */
     exportData: () => string;
@@ -242,6 +244,8 @@ export const useStore = create<AppState>()(
             setDrawerOpen: (open) => set({ drawerOpen: open }),
             language: 'en' as Language,
             setLanguage: (l) => set({ language: l }),
+            openSwipeId: null,
+            setOpenSwipeId: (id) => set({ openSwipeId: id }),
 
             exportData: () => {
                 const { settings, items, subscriptions, quickAddItems, darkMode, language } = get();
@@ -250,18 +254,38 @@ export const useStore = create<AppState>()(
             importData: (json: string) => {
                 try {
                     const data = JSON.parse(json);
-                    if (data.settings && Array.isArray(data.items)) {
-                        set({
-                            settings: data.settings,
-                            items: data.items,
-                            ...(Array.isArray(data.subscriptions) && { subscriptions: data.subscriptions }),
-                            ...(Array.isArray(data.quickAddItems) && { quickAddItems: data.quickAddItems }),
-                            ...(data.darkMode !== undefined && { darkMode: data.darkMode }),
-                            ...(data.language !== undefined && { language: data.language })
-                        });
-                        return true;
-                    }
-                    return false;
+                    const s = data?.settings;
+                    if (
+                        !s ||
+                        typeof s.incomeType !== 'string' ||
+                        typeof s.rate !== 'number' ||
+                        typeof s.currency !== 'string' ||
+                        typeof s.hoursPerDay !== 'number' ||
+                        typeof s.daysPerMonth !== 'number'
+                    ) return false;
+                    if (!Array.isArray(data.items)) return false;
+                    const validItem = (i: unknown): i is ShoppingItem =>
+                        !!i && typeof i === 'object' &&
+                        typeof (i as ShoppingItem).id === 'string' &&
+                        typeof (i as ShoppingItem).name === 'string' &&
+                        typeof (i as ShoppingItem).price === 'number';
+                    if (!data.items.every(validItem)) return false;
+
+                    set({
+                        settings: {
+                            incomeType: s.incomeType,
+                            rate: s.rate,
+                            currency: s.currency,
+                            hoursPerDay: s.hoursPerDay,
+                            daysPerMonth: s.daysPerMonth,
+                        },
+                        items: data.items,
+                        ...(Array.isArray(data.subscriptions) && { subscriptions: data.subscriptions }),
+                        ...(Array.isArray(data.quickAddItems) && { quickAddItems: data.quickAddItems }),
+                        ...(typeof data.darkMode === 'boolean' && { darkMode: data.darkMode }),
+                        ...(typeof data.language === 'string' && { language: data.language })
+                    });
+                    return true;
                 } catch {
                     return false;
                 }

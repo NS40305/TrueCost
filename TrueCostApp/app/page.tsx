@@ -194,11 +194,12 @@ export default function CalculatorPage() {
               type="url"
               value={url}
               onChange={handleUrlChange}
-              placeholder="https://..."
+              placeholder="https://www.amazon.com/..."
               className={`${inputClass} pr-10`}
               style={{ border: '1px solid var(--border-color)' }}
               disabled={isScraping}
             />
+            <p className="text-[11px] text-muted mt-1 px-1">{T('amazonOnly')}</p>
             {isScraping && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
                 <svg className="animate-spin h-4 w-4 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -272,7 +273,7 @@ export default function CalculatorPage() {
               );
             } else if (days <= 1) {
               verdict = 'no';
-              verdictLabel = T('worthMaybe');
+              verdictLabel = T('worthNo');
               verdictDesc = T('worthDescLarge');
               verdictColor = 'text-orange-500';
               progressColor = 'bg-orange-500';

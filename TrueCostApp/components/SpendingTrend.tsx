@@ -138,7 +138,7 @@ export default function SpendingTrend({ items, allItems, currencySymbol, currenc
         const diff = currentTotal - prevTotal;
         if (diff === 0) return { amount: 0, direction: 'flat' as const };
         return { amount: Math.abs(Math.round(diff)), direction: diff > 0 ? 'up' as const : 'down' as const };
-    }, [items, allItems, mode, currentDate]);
+    }, [items, allItems, mode, currentDate, subscriptionTotal]);
 
     const maxVal = Math.max(...values, 1);
 

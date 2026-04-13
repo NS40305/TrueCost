@@ -256,7 +256,7 @@ export default function QuickAddSettingsPage() {
     };
 
     const handleResetToDefaults = () => {
-        if (confirm(T('resetConfirm'))) {
+        if (confirm(T('resetQuickAddConfirm'))) {
             // Import QUICK_ADD_PRESETS directly
             import('@/lib/constants').then(({ QUICK_ADD_PRESETS }) => {
                 const { reorderQuickAddItems } = useStore.getState();

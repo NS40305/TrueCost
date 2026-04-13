@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useStore, SubscriptionItem, SubscriptionCycle } from '@/lib/store';
 import { getTimeNeeded, formatHours } from '@/lib/calculations';
 import { CURRENCIES } from '@/lib/constants';
@@ -86,8 +86,10 @@ export default function SummaryPage() {
     const [mode, setMode] = useState<ReportMode>('weekly');
     const [currentDate, setCurrentDate] = useState(new Date());
 
+    const setOpenSwipeId = useStore((s) => s.setOpenSwipeId);
     const T = (key: string) => t(language, key);
     const currencySymbol = CURRENCIES.find((c) => c.code === settings.currency)?.symbol || '$';
+    const closeSwipe = useCallback(() => setOpenSwipeId(null), [setOpenSwipeId]);
 
     type SortDir = 'asc' | 'desc';
     const [sortMode, setSortMode] = useState<'date' | 'price'>('date');
@@ -216,7 +218,7 @@ export default function SummaryPage() {
     }, [currentDate, mode, language]);
 
     return (
-        <div className="max-w-lg mx-auto px-4 py-8 space-y-8">
+        <div className="max-w-lg mx-auto px-4 py-8 space-y-8" onClick={closeSwipe}>
             {/* Header */}
             <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold" style={{ letterSpacing: '-0.03em', lineHeight: '1.1' }}>{T('summaryTitle')}</h2>
