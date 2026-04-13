@@ -87,7 +87,7 @@ const SubscriptionCard = memo(function SubscriptionCard({ sub, editable = false 
             >
                 {/* Icon */}
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${sub.enabled ? 'bg-accent/10' : 'bg-surface-hover'}`}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={sub.enabled ? 'text-accent' : 'text-muted'}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={sub.enabled ? 'text-accent' : 'text-muted'}>
                         <path d="M21 12V7H5a2 2 0 010-4h14v4" /><path d="M3 5v14a2 2 0 002 2h16v-5" /><path d="M18 12a2 2 0 000 4h4v-4h-4z" />
                     </svg>
                 </div>
@@ -118,10 +118,10 @@ const SubscriptionCard = memo(function SubscriptionCard({ sub, editable = false 
                     {editable && (
                         <button
                             onClick={(e) => { e.stopPropagation(); toggleSubscription(sub.id); }}
-                            className={`relative w-10 h-6 rounded-full transition-colors flex-shrink-0 ${sub.enabled ? 'bg-accent' : 'bg-border'}`}
+                            className={`relative w-[42px] h-[25px] rounded-full transition-colors flex-shrink-0 ${sub.enabled ? 'bg-accent' : 'bg-[#e0e0e0]'}`}
                             aria-label={sub.enabled ? T('enabled') : T('disabled')}
                         >
-                            <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform ${sub.enabled ? 'left-[18px]' : 'left-0.5'}`} />
+                            <span className={`absolute top-[2px] w-[21px] h-[21px] rounded-full bg-white shadow-sm transition-transform ${sub.enabled ? 'left-[19px]' : 'left-[2px]'}`} />
                         </button>
                     )}
                 </div>
@@ -152,7 +152,8 @@ const SubscriptionCard = memo(function SubscriptionCard({ sub, editable = false 
                                             e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                         }, 300);
                                     }}
-                                    className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all" 
+                                    className="w-full px-3 py-2.5 rounded-[10px] bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all"
+                            style={{ border: '1px solid var(--border-color)' }} 
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-3">
@@ -169,12 +170,14 @@ const SubscriptionCard = memo(function SubscriptionCard({ sub, editable = false 
                                         }}
                                         min="0" 
                                         step="0.01" 
-                                        className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all" 
+                                        className="w-full px-3 py-2.5 rounded-[10px] bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all"
+                            style={{ border: '1px solid var(--border-color)' }} 
                                     />
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1.5">{T('category')}</label>
-                                    <select value={editCategory} onChange={(e) => setEditCategory(e.target.value as Category)} className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all appearance-none cursor-pointer">
+                                    <select value={editCategory} onChange={(e) => setEditCategory(e.target.value as Category)} className="w-full px-3 py-2.5 rounded-[10px] bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all appearance-none cursor-pointer"
+                        style={{ border: '1px solid var(--border-color)' }}>
                                         {CATEGORIES.map((c) => (<option key={c} value={c}>{T(c)}</option>))}
                                     </select>
                                 </div>
@@ -186,7 +189,7 @@ const SubscriptionCard = memo(function SubscriptionCard({ sub, editable = false 
                                         <button
                                             key={c}
                                             onClick={() => setEditCycle(c)}
-                                            className={`py-2 rounded-xl text-sm font-medium transition-all ${editCycle === c ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'bg-surface-hover text-muted hover:text-foreground'}`}
+                                            className={`py-2 rounded-[10px] text-sm font-medium transition-all ${editCycle === c ? 'bg-accent text-white' : 'bg-surface-hover text-muted hover:text-foreground'}`}
                                         >
                                             {T(c + 'Cycle')}
                                         </button>
@@ -196,10 +199,10 @@ const SubscriptionCard = memo(function SubscriptionCard({ sub, editable = false 
                         </div>
 
                         <div className="flex gap-3 pt-2">
-                            <button onClick={handleDelete} className="flex-1 py-3 rounded-xl font-semibold text-sm bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all">
+                            <button onClick={handleDelete} className="flex-1 py-3 rounded-[10px] font-semibold text-sm bg-red-500/8 text-red-500 hover:bg-red-500/15 transition-all">
                                 {T('delete')}
                             </button>
-                            <button onClick={handleSave} className="flex-1 py-3 rounded-xl font-semibold text-sm bg-accent text-white hover:bg-accent-hover transition-all shadow-lg shadow-accent/20">
+                            <button onClick={handleSave} className="flex-1 py-3 rounded-[10px] font-semibold text-sm bg-accent text-white hover:brightness-110 transition-all active:scale-[0.98]">
                                 {T('save')}
                             </button>
                         </div>

@@ -27,7 +27,7 @@ export default function QuickAddChips({ onSelect }: QuickAddChipsProps) {
                     href="/quick-add"
                     className="text-xs font-medium text-accent hover:text-accent-hover transition-colors flex items-center gap-1"
                 >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
                         <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                     </svg>
@@ -39,7 +39,8 @@ export default function QuickAddChips({ onSelect }: QuickAddChipsProps) {
                     <button
                         key={item.id}
                         onClick={() => onSelect(item)}
-                        className="px-3 py-1.5 rounded-full text-xs font-medium bg-accent/10 text-accent hover:bg-accent/20 transition-colors border border-accent/20"
+                        className="px-3 py-1.5 rounded-full text-xs font-medium bg-accent/8 text-accent hover:bg-accent/15 transition-colors"
+                        style={{ border: '1px solid rgba(var(--accent-rgb), 0.15)' }}
                     >
                         {item.name} · {currencySymbol}{item.price}
                     </button>
@@ -47,7 +48,8 @@ export default function QuickAddChips({ onSelect }: QuickAddChipsProps) {
                 {quickAddItems.length === 0 && (
                     <Link
                         href="/quick-add"
-                        className="px-3 py-1.5 rounded-full text-xs font-medium bg-accent/10 text-accent hover:bg-accent/20 transition-colors border border-accent/20 border-dashed"
+                        className="px-3 py-1.5 rounded-full text-xs font-medium bg-accent/8 text-accent hover:bg-accent/15 transition-colors"
+                        style={{ border: '1px dashed rgba(var(--accent-rgb), 0.2)' }}
                     >
                         + {T('addNewItem')}
                     </Link>

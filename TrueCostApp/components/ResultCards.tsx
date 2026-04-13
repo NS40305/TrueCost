@@ -14,42 +14,42 @@ const cards = [
         key: 'hours' as const,
         format: formatHours,
         icon: (
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-amber-400">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
                 <circle cx="12" cy="12" r="10" />
                 <polyline points="12 6 12 12 16 14" />
             </svg>
         ),
-        gradient: 'from-amber-500/10 to-orange-500/10',
-        textColor: 'text-amber-400',
+        bgColor: 'rgba(245, 166, 35, 0.08)',
+        textColor: 'text-amber-500',
     },
     {
         label: 'Days',
         key: 'days' as const,
         format: formatDays,
         icon: (
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky-400">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500">
                 <rect x="3" y="4" width="18" height="18" rx="2" />
                 <line x1="16" y1="2" x2="16" y2="6" />
                 <line x1="8" y1="2" x2="8" y2="6" />
                 <line x1="3" y1="10" x2="21" y2="10" />
             </svg>
         ),
-        gradient: 'from-sky-500/10 to-cyan-500/10',
-        textColor: 'text-sky-400',
+        bgColor: 'rgba(52, 120, 246, 0.08)',
+        textColor: 'text-sky-500',
     },
     {
         label: 'Years',
         key: 'years' as const,
         format: formatYears,
         icon: (
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500">
                 <circle cx="12" cy="12" r="10" />
                 <path d="M2 12h20" />
                 <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
             </svg>
         ),
-        gradient: 'from-emerald-500/10 to-teal-500/10',
-        textColor: 'text-emerald-400',
+        bgColor: 'rgba(52, 199, 89, 0.08)',
+        textColor: 'text-emerald-500',
     },
 ];
 
@@ -68,7 +68,8 @@ export default function ResultCards({ itemName, result }: ResultCardsProps) {
                 {cards.map((card) => (
                     <div
                         key={card.key}
-                        className={`glass-card p-4 flex flex-col items-center gap-2 bg-gradient-to-br ${card.gradient}`}
+                        className="glass-card p-4 flex flex-col items-center gap-2"
+                        style={{ background: card.bgColor }}
                     >
                         {card.icon}
                         <NumberTicker

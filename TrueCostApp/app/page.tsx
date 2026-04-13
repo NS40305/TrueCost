@@ -91,7 +91,7 @@ export default function CalculatorPage() {
         if (res.ok) {
           const data = await res.json();
           if (data.success) {
-            if (data.title) setName(data.title.substring(0, 100)); // limit length
+            if (data.title) setName(data.title.substring(0, 100));
             if (data.price > 0) {
               setPrice(data.price.toString());
               setShowResult(true);
@@ -106,11 +106,14 @@ export default function CalculatorPage() {
     }
   };
 
+  /* Shared Apple input class */
+  const inputClass = "w-full px-4 py-3 rounded-[10px] bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all";
+
   return (
     <div className="max-w-lg mx-auto px-4 py-8 space-y-6">
       {/* Hero */}
       <div className="text-center space-y-1">
-        <h2 className="text-2xl font-bold">{T('calculator')}</h2>
+        <h2 className="text-2xl font-semibold" style={{ letterSpacing: '-0.03em', lineHeight: '1.1' }}>{T('calculator')}</h2>
         <p className="text-sm text-muted">{T('enterPrice')}</p>
       </div>
 
@@ -128,7 +131,8 @@ export default function CalculatorPage() {
               placeholder="0.00"
               min="0"
               step="0.01"
-              className="w-full px-4 py-3 pr-16 rounded-xl bg-background border border-border text-lg font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
+              className={`${inputClass} text-lg font-semibold tabular-nums pr-16`}
+              style={{ border: '1px solid var(--border-color)' }}
             />
             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted">
               {settings.currency}
@@ -147,7 +151,8 @@ export default function CalculatorPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={T('itemPlaceholder')}
-              className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
+              className={inputClass}
+              style={{ border: '1px solid var(--border-color)' }}
             />
           </div>
           <div className="col-span-2">
@@ -157,7 +162,8 @@ export default function CalculatorPage() {
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value as Category)}
-              className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all appearance-none cursor-pointer"
+              className={`${inputClass} appearance-none cursor-pointer`}
+              style={{ border: '1px solid var(--border-color)' }}
             >
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>{T(c)}</option>
@@ -170,10 +176,10 @@ export default function CalculatorPage() {
         <div className="flex items-center">
           <button
             onClick={() => setShowUrl(!showUrl)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${showUrl ? 'bg-accent/15 text-accent' : 'bg-surface-hover text-muted hover:text-foreground'
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${showUrl ? 'bg-accent/12 text-accent' : 'bg-surface-hover text-muted hover:text-foreground'
               }`}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
               <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
             </svg>
@@ -189,7 +195,8 @@ export default function CalculatorPage() {
               value={url}
               onChange={handleUrlChange}
               placeholder="https://..."
-              className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all pr-10"
+              className={`${inputClass} pr-10`}
+              style={{ border: '1px solid var(--border-color)' }}
               disabled={isScraping}
             />
             {isScraping && (
@@ -217,7 +224,8 @@ export default function CalculatorPage() {
             <button
               onClick={handleAddToList}
               disabled={!name.trim() || priceNum <= 0}
-              className="w-full py-3 rounded-xl font-semibold text-sm bg-accent text-white hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg shadow-accent/20"
+              className="w-full py-3 rounded-[10px] font-semibold text-sm bg-accent text-white hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
+              style={{ boxShadow: '0 1px 3px rgba(var(--accent-rgb), 0.2)' }}
             >
               {justAdded ? T('addedToList') : T('addToList')}
             </button>
@@ -239,11 +247,11 @@ export default function CalculatorPage() {
               verdict = 'yes';
               verdictLabel = T('worthYes');
               verdictDesc = T('worthDescSmall');
-              verdictColor = 'text-emerald-400';
+              verdictColor = 'text-emerald-500';
               progressColor = 'bg-emerald-500';
               barWidth = Math.max(5, (hours / 1) * 100);
               icon = (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500">
                   <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
                   <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
@@ -252,11 +260,11 @@ export default function CalculatorPage() {
               verdict = 'maybe';
               verdictLabel = T('worthMaybe');
               verdictDesc = T('worthDescMedium');
-              verdictColor = 'text-amber-400';
+              verdictColor = 'text-amber-500';
               progressColor = 'bg-amber-500';
               barWidth = Math.min(100, (hours / settings.hoursPerDay) * 100);
               icon = (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-400">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
                   <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                   <line x1="12" y1="9" x2="12" y2="13" />
                   <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -266,11 +274,11 @@ export default function CalculatorPage() {
               verdict = 'no';
               verdictLabel = T('worthMaybe');
               verdictDesc = T('worthDescLarge');
-              verdictColor = 'text-orange-400';
+              verdictColor = 'text-orange-500';
               progressColor = 'bg-orange-500';
               barWidth = Math.min(100, (days / 1) * 100);
               icon = (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-400">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500">
                   <circle cx="12" cy="12" r="10" />
                   <line x1="12" y1="8" x2="12" y2="12" />
                   <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -280,11 +288,11 @@ export default function CalculatorPage() {
               verdict = 'no';
               verdictLabel = T('worthNo');
               verdictDesc = T('worthDescHuge');
-              verdictColor = 'text-red-400';
+              verdictColor = 'text-red-500';
               progressColor = 'bg-red-500';
               barWidth = 100;
               icon = (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-400">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-red-500">
                   <circle cx="12" cy="12" r="10" />
                   <line x1="15" y1="9" x2="9" y2="15" />
                   <line x1="9" y1="9" x2="15" y2="15" />
@@ -294,12 +302,14 @@ export default function CalculatorPage() {
 
             return (
               <div className="worth-insight-card glass-card overflow-hidden">
-                {/* Dark gradient header */}
-                <div className={`px-5 py-3 flex items-center gap-3 ${
-                  verdict === 'yes' ? 'bg-gradient-to-r from-emerald-500/10 to-emerald-500/5' :
-                  verdict === 'maybe' ? 'bg-gradient-to-r from-amber-500/10 to-amber-500/5' :
-                  'bg-gradient-to-r from-red-500/10 to-red-500/5'
-                }`}>
+                {/* Header */}
+                <div className={`px-5 py-3 flex items-center gap-3`}
+                  style={{
+                    background: verdict === 'yes' ? 'rgba(52, 199, 89, 0.06)'
+                      : verdict === 'maybe' ? 'rgba(245, 166, 35, 0.06)'
+                      : 'rgba(255, 59, 48, 0.06)'
+                  }}
+                >
                   {icon}
                   <div className="flex-1">
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted">{T('worthMyTime')}</p>
@@ -319,7 +329,7 @@ export default function CalculatorPage() {
                         {result.hours < 1 ? result.hours.toFixed(1) : Math.round(result.hours)} {T('hrs')}
                       </span>
                     </div>
-                    <div className="h-2 rounded-full bg-border overflow-hidden">
+                    <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--surface-hover)' }}>
                       <div
                         className={`h-full rounded-full ${progressColor} transition-all duration-700 ease-out`}
                         style={{ width: `${barWidth}%` }}
@@ -347,18 +357,18 @@ export default function CalculatorPage() {
           className="w-full flex items-center justify-between p-5 hover:bg-surface-hover transition-colors"
         >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
+            <div className="w-9 h-9 rounded-xl bg-accent/8 flex items-center justify-center">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
                 <path d="M21 12V7H5a2 2 0 010-4h14v4" /><path d="M3 5v14a2 2 0 002 2h16v-5" /><path d="M18 12a2 2 0 000 4h4v-4h-4z" />
               </svg>
             </div>
             <div className="text-left">
-              <p className="font-bold text-sm">{T('subscriptions')}</p>
+              <p className="font-semibold text-sm">{T('subscriptions')}</p>
               <p className="text-xs text-muted">{subscriptions.length} {subscriptions.length === 1 ? T('item') : T('items')}</p>
             </div>
           </div>
           <svg
-            width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
             className={`text-muted transition-transform duration-300 ${subExpanded ? 'rotate-180' : ''}`}
           >
             <polyline points="6 9 12 15 18 9" />
@@ -369,7 +379,7 @@ export default function CalculatorPage() {
         {subExpanded && (
           <div>
           <div className="px-5 pb-5 space-y-3">
-            <div className="h-px bg-border" />
+            <div className="h-px" style={{ background: 'var(--border-color)' }} />
 
             {/* Subscription list */}
             {subscriptions.length === 0 ? (
@@ -389,15 +399,16 @@ export default function CalculatorPage() {
             {!showSubForm ? (
               <button
                 onClick={() => setShowSubForm(true)}
-                className="w-full py-2.5 rounded-xl border-2 border-dashed border-border hover:border-accent text-sm font-medium text-muted hover:text-accent transition-all flex items-center justify-center gap-2"
+                className="w-full py-2.5 rounded-[10px] text-sm font-medium text-muted hover:text-accent transition-all flex items-center justify-center gap-2"
+                style={{ border: '2px dashed var(--border-color)' }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
                 {T('addSubscription')}
               </button>
             ) : (
-              <div className="space-y-3 p-4 rounded-xl bg-background border border-border">
+              <div className="space-y-3 p-4 rounded-xl bg-background" style={{ border: '1px solid var(--border-color)' }}>
                 <div className="grid grid-cols-5 gap-3">
                   <div className="col-span-3">
                     <label className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1.5">{T('subscriptionName')}</label>
@@ -406,7 +417,8 @@ export default function CalculatorPage() {
                       value={subName}
                       onChange={(e) => setSubName(e.target.value)}
                       placeholder={T('subscriptionPlaceholder')}
-                      className="w-full px-3 py-2.5 rounded-xl bg-surface border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
+                      className={inputClass}
+                      style={{ border: '1px solid var(--border-color)', background: 'var(--surface)' }}
                     />
                   </div>
                   <div className="col-span-2">
@@ -418,7 +430,8 @@ export default function CalculatorPage() {
                       placeholder="0.00"
                       min="0"
                       step="0.01"
-                      className="w-full px-3 py-2.5 rounded-xl bg-surface border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
+                      className={inputClass}
+                      style={{ border: '1px solid var(--border-color)', background: 'var(--surface)' }}
                     />
                   </div>
                 </div>
@@ -429,7 +442,8 @@ export default function CalculatorPage() {
                     <select
                       value={subCategory}
                       onChange={(e) => setSubCategory(e.target.value as Category)}
-                      className="w-full px-3 py-2.5 rounded-xl bg-surface border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all appearance-none cursor-pointer"
+                      className={`${inputClass} appearance-none cursor-pointer`}
+                      style={{ border: '1px solid var(--border-color)', background: 'var(--surface)' }}
                     >
                       {CATEGORIES.map((c) => (
                         <option key={c} value={c}>{T(c)}</option>
@@ -441,7 +455,8 @@ export default function CalculatorPage() {
                     <select
                       value={subCycle}
                       onChange={(e) => setSubCycle(e.target.value as SubscriptionCycle)}
-                      className="w-full px-3 py-2.5 rounded-xl bg-surface border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all appearance-none cursor-pointer"
+                      className={`${inputClass} appearance-none cursor-pointer`}
+                      style={{ border: '1px solid var(--border-color)', background: 'var(--surface)' }}
                     >
                       <option value="weekly">{T('weeklyCycle')}</option>
                       <option value="monthly">{T('monthlyCycle')}</option>
@@ -453,7 +468,7 @@ export default function CalculatorPage() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => { setShowSubForm(false); setSubName(''); setSubPrice(''); setSubCategory('Other'); setSubCycle('monthly'); }}
-                    className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-surface-hover text-muted hover:text-foreground transition-all"
+                    className="flex-1 py-2.5 rounded-[10px] text-sm font-medium bg-surface-hover text-muted hover:text-foreground transition-all"
                   >
                     {T('cancel')}
                   </button>
@@ -480,7 +495,8 @@ export default function CalculatorPage() {
                       }, 600);
                     }}
                     disabled={!subName.trim() || (parseFloat(subPrice) || 0) <= 0}
-                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-accent text-white hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg shadow-accent/20"
+                    className="flex-1 py-2.5 rounded-[10px] text-sm font-semibold bg-accent text-white hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
+                    style={{ boxShadow: '0 1px 3px rgba(var(--accent-rgb), 0.2)' }}
                   >
                     {subJustAdded ? T('addedToList') : T('addSubscription')}
                   </button>

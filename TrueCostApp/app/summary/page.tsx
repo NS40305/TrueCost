@@ -109,17 +109,20 @@ export default function SummaryPage() {
             }
         });
 
-        if (sortMode === 'date') {
-            list.sort((a, b) => {
+        list.sort((a, b) => {
+            // Prioritize regretted items at the top
+            if (a.regretted && !b.regretted) return -1;
+            if (!a.regretted && b.regretted) return 1;
+
+            // Follow normal sorting modes for the rest
+            if (sortMode === 'date') {
                 const diff = (b.completedAt || b.addedAt) - (a.completedAt || a.addedAt);
                 return sortDir === 'desc' ? diff : -diff;
-            });
-        } else {
-            list.sort((a, b) => {
+            } else {
                 const diff = b.price - a.price;
                 return sortDir === 'desc' ? diff : -diff;
-            });
-        }
+            }
+        });
 
         return list;
     }, [completedItems, mode, currentDate, sortMode, sortDir]);
@@ -216,7 +219,7 @@ export default function SummaryPage() {
         <div className="max-w-lg mx-auto px-4 py-8 space-y-8">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">{T('summaryTitle')}</h2>
+                <h2 className="text-2xl font-semibold" style={{ letterSpacing: '-0.03em', lineHeight: '1.1' }}>{T('summaryTitle')}</h2>
                 <button
                     onClick={() => {
                         if (sortMode === 'date') {
@@ -227,7 +230,8 @@ export default function SummaryPage() {
                             else { setSortMode('date'); setSortDir('desc'); }
                         }
                     }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-surface-hover border border-border text-sm font-medium transition-colors text-accent cursor-pointer min-w-[100px] justify-center"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-surface hover:bg-surface-hover text-sm font-medium transition-colors text-accent cursor-pointer min-w-[100px] justify-center"
+                    style={{ border: '1px solid var(--border-color)' }}
                 >
                     {sortMode === 'date' ? T('sortByDate').replace(' ↓', '') : T('sortByPrice').replace(' ↓', '')}
                     <div className="flex flex-col items-center justify-center -space-y-1">
@@ -347,11 +351,13 @@ export default function SummaryPage() {
                 return (
                     <div className="glass-card rounded-2xl overflow-hidden">
                         {/* Header */}
-                        <div className={`px-5 py-3 flex items-center gap-3 ${
-                            overallVerdict === 'good' ? 'bg-gradient-to-r from-emerald-500/10 to-emerald-500/5' :
-                            overallVerdict === 'watch' ? 'bg-gradient-to-r from-amber-500/10 to-amber-500/5' :
-                            'bg-gradient-to-r from-red-500/10 to-red-500/5'
-                        }`}>
+                        <div className={`px-5 py-3 flex items-center gap-3`}
+                            style={{
+                                background: overallVerdict === 'good' ? 'rgba(52, 199, 89, 0.06)'
+                                    : overallVerdict === 'watch' ? 'rgba(245, 166, 35, 0.06)'
+                                    : 'rgba(255, 59, 48, 0.06)'
+                            }}
+                        >
                             {verdictIcon}
                             <div className="flex-1">
                                 <p className="text-xs font-semibold uppercase tracking-wider text-muted">{T('isExpenseWorthwhile')}</p>
@@ -364,7 +370,7 @@ export default function SummaryPage() {
                             <p className="text-sm text-muted">{verdictDesc}</p>
 
                             {/* Stacked bar */}
-                            <div className="h-3 rounded-full bg-border overflow-hidden flex">
+                            <div className="h-3 rounded-full overflow-hidden flex" style={{ background: 'var(--surface-hover)' }}>
                                 {smallPct > 0 && <div className="bg-emerald-500 transition-all duration-500 h-full" style={{ width: `${smallPct}%` }} />}
                                 {mediumPct > 0 && <div className="bg-amber-500 transition-all duration-500 h-full" style={{ width: `${mediumPct}%` }} />}
                                 {largePct > 0 && <div className="bg-red-500 transition-all duration-500 h-full" style={{ width: `${largePct}%` }} />}
@@ -455,8 +461,8 @@ export default function SummaryPage() {
                 return (
                     <div className="worth-insight-card glass-card rounded-2xl overflow-hidden">
                         {/* Header */}
-                        <div className="px-5 py-3 flex items-center gap-3 bg-gradient-to-r from-purple-500/15 to-purple-500/5">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400">
+                        <div className="px-5 py-3 flex items-center gap-3" style={{ background: 'rgba(168, 85, 247, 0.06)' }}>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400">
                                 <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" />
                                 <line x1="1" y1="1" x2="23" y2="23" />
                             </svg>
@@ -479,7 +485,7 @@ export default function SummaryPage() {
 
                             {/* Gauge bar */}
                             <div className="space-y-1.5">
-                                <div className="h-2.5 rounded-full bg-border overflow-hidden">
+                                <div className="h-2.5 rounded-full overflow-hidden" style={{ background: 'var(--surface-hover)' }}>
                                     <div
                                         className={`h-full rounded-full ${gaugeColor} transition-all duration-700 ease-out`}
                                         style={{ width: `${Math.max(regretRate > 0 ? 3 : 0, regretRate)}%` }}
@@ -593,10 +599,10 @@ export default function SummaryPage() {
             {/* ── Fixed Expenses Section ── */}
             {activeSubscriptions.length > 0 && (
                 <div className="glass-card rounded-2xl overflow-hidden">
-                    <div className="p-4 flex items-center justify-between border-b border-border">
+                    <div className="p-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border-color)' }}>
                         <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
                                     <path d="M21 12V7H5a2 2 0 010-4h14v4" /><path d="M3 5v14a2 2 0 002 2h16v-5" /><path d="M18 12a2 2 0 000 4h4v-4h-4z" />
                                 </svg>
                             </div>
@@ -606,7 +612,7 @@ export default function SummaryPage() {
                             </div>
                         </div>
                     </div>
-                    <div className="divide-y divide-border">
+                    <div>
                         {activeSubscriptions.map(sub => (
                             <div key={sub.id} className="px-4 py-3 flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">

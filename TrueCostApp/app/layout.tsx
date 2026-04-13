@@ -1,10 +1,9 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import './globals.css';
 import ClientShell from '@/components/ClientShell';
 
-const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
-const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] });
+const inter = Inter({ variable: '--font-inter', subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'TrueCost – Is It Worth Your Time?',
@@ -25,7 +24,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0b0f1a',
+  themeColor: '#000000',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -46,7 +45,6 @@ export default function RootLayout({
                 const s = JSON.parse(localStorage.getItem('truecost-storage') || '{}');
                 if (s.state && s.state.darkMode !== false) {
                   document.documentElement.classList.add('dark');
-                  if (s.state.deepGreyMode) document.documentElement.classList.add('deep-grey');
                 }
               } catch(e) { document.documentElement.classList.add('dark'); }
               try {
@@ -60,7 +58,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
+      <body className={`${inter.variable} antialiased`} suppressHydrationWarning>
         <ClientShell>{children}</ClientShell>
       </body>
     </html>

@@ -67,7 +67,7 @@ export default function ListPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold">{T('shoppingList')}</h2>
+                    <h2 className="text-2xl font-semibold" style={{ letterSpacing: '-0.03em', lineHeight: '1.1' }}>{T('shoppingList')}</h2>
                     <p className="text-sm text-muted">{items.length} {items.length !== 1 ? T('items') : T('item')}</p>
                 </div>
                 <div className="flex gap-2">
@@ -88,7 +88,8 @@ export default function ListPage() {
                     <select
                         value={filterCategory}
                         onChange={(e) => setFilterCategory(e.target.value)}
-                        className="px-3 py-1.5 rounded-xl bg-surface border border-border text-xs font-medium focus:outline-none focus:ring-2 focus:ring-accent/40 appearance-none cursor-pointer"
+                        className="px-3 py-1.5 rounded-[10px] bg-surface text-xs font-medium focus:outline-none focus:ring-2 focus:ring-accent/50 appearance-none cursor-pointer"
+                        style={{ border: '1px solid var(--border-color)' }}
                     >
                         <option value="all">{T('all')}</option>
                         {CATEGORIES.map((c) => (
@@ -112,7 +113,8 @@ export default function ListPage() {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder={T('searchItems')}
-                    className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-surface border border-border text-sm placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
+                    className="w-full pl-9 pr-4 py-2.5 rounded-[10px] bg-surface text-sm placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all"
+                    style={{ border: '1px solid var(--border-color)' }}
                 />
             </div>
 

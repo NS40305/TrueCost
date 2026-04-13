@@ -43,9 +43,20 @@ function getMarketColors(currencyCode: string) {
     };
 }
 
+/** Get the brightness level (0–4) for GitHub-style heatmap */
+function getHeatLevel(value: number, maxVal: number): number {
+    if (value === 0) return 0;
+    const ratio = value / maxVal;
+    if (ratio <= 0.25) return 1;
+    if (ratio <= 0.50) return 2;
+    if (ratio <= 0.75) return 3;
+    return 4;
+}
+
 export default function SpendingTrend({ items, allItems, currencySymbol, currencyCode, language, mode, currentDate, subscriptionTotal = 0 }: SpendingTrendProps) {
     const T = (key: string) => t(language, key);
     const marketColors = getMarketColors(currencyCode);
+
 
     const { labels, values, todayIdx } = useMemo(() => {
         const locale = language === 'en' ? 'en-US' : language;
@@ -87,11 +98,7 @@ export default function SpendingTrend({ items, allItems, currencySymbol, currenc
                 }
             });
 
-            const step = daysInMonth <= 28 ? 7 : 5;
-            const dayLabels = Array.from({ length: daysInMonth }, (_, i) => {
-                if (i === 0 || i === daysInMonth - 1 || (i + 1) % step === 0) return `${i + 1}`;
-                return '';
-            });
+            const dayLabels = Array.from({ length: daysInMonth }, (_, i) => `${i + 1}`);
 
             let today = -1;
             if (now.getFullYear() === year && now.getMonth() === month) {
@@ -133,37 +140,89 @@ export default function SpendingTrend({ items, allItems, currencySymbol, currenc
         return { amount: Math.abs(Math.round(diff)), direction: diff > 0 ? 'up' as const : 'down' as const };
     }, [items, allItems, mode, currentDate]);
 
-    if (items.length === 0) return null;
-
     const maxVal = Math.max(...values, 1);
-    const barCount = values.length;
 
-    // SVG dimensions — compute dynamically so bars always fit
-    const padL = 8;
-    const padR = 8;
-    const padT = 24;  // enough room for value labels above bars
-    const padB = 32;  // enough room for day labels + today dot
-    const barGap = mode === 'weekly' ? 16 : 2;
-    const barW = mode === 'weekly' ? 40 : 10;
-    const drawW = barCount * barW + (barCount - 1) * barGap;
-    const chartW = padL + drawW + padR;
-    const drawH = 120;
-    const chartH = padT + drawH + padB;
-
-    // Average line
+    // Average
     const nonZeroVals = values.filter(v => v > 0);
     const avg = nonZeroVals.length > 0 ? nonZeroVals.reduce((a, b) => a + b, 0) / nonZeroVals.length : 0;
-    const avgY = padT + drawH - (avg / maxVal) * drawH;
 
-    // Use a key that changes when data changes to force SVG re-mount and replay CSS animations
+    // Use a key that changes when data changes to force re-mount and replay CSS animations
     const chartKey = `${mode}-${currentDate.getTime()}-${items.length}`;
+
+    // ── Monthly heatmap grid data ──
+    const heatmapData = useMemo(() => {
+        if (mode !== 'monthly') return null;
+
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const daysInMonth = values.length;
+
+        // First day of month: 0=Sun, 1=Mon … 6=Sat (Sunday-first calendar)
+        const firstDayJS = new Date(year, month, 1).getDay(); // 0=Sun
+
+        const locale = language === 'en' ? 'en-US' : language;
+        const weekdayLabels = Array.from({ length: 7 }, (_, i) => {
+            // Create a date that is a Sunday + i days
+            const d = new Date(2023, 11, 31); // Sunday, Dec 31 2023
+            d.setDate(d.getDate() + i);
+            return d.toLocaleDateString(locale, { weekday: 'narrow' });
+        });
+
+        // Build grid: array of weeks, each week has 7 cells (Sun-Sat)
+        const weeks: Array<Array<{ day: number; value: number; level: number } | null>> = [];
+        let currentWeek: Array<{ day: number; value: number; level: number } | null> = [];
+
+        // Fill leading blanks (Sun=0, so use firstDayJS directly)
+        for (let i = 0; i < firstDayJS; i++) {
+            currentWeek.push(null);
+        }
+
+        for (let d = 0; d < daysInMonth; d++) {
+            const level = getHeatLevel(values[d], maxVal);
+            currentWeek.push({ day: d + 1, value: values[d], level });
+            if (currentWeek.length === 7) {
+                weeks.push(currentWeek);
+                currentWeek = [];
+            }
+        }
+
+        // Fill trailing blanks
+        if (currentWeek.length > 0) {
+            while (currentWeek.length < 7) {
+                currentWeek.push(null);
+            }
+            weeks.push(currentWeek);
+        }
+
+        return { weeks, weekdayLabels, daysInMonth };
+    }, [mode, currentDate, values, maxVal, language]);
+
+    // ── Weekly bar chart dimensions — fully responsive ──
+    const weeklyChart = useMemo(() => {
+        if (mode !== 'weekly') return null;
+        const padL = 8;
+        const padR = 8;
+        const padT = 24;
+        const padB = 32;
+        const barGap = 12;
+        const barW = 36;
+        const barCount = values.length;
+        const drawW = barCount * barW + (barCount - 1) * barGap;
+        const chartW = padL + drawW + padR;
+        const drawH = 120;
+        const chartH = padT + drawH + padB;
+        const avgY = padT + drawH - (avg / maxVal) * drawH;
+        return { padL, padR, padT, padB, barGap, barW, drawW, chartW, drawH, chartH, avgY };
+    }, [mode, values, avg, maxVal]);
+
+    if (items.length === 0) return null;
 
     return (
         <div className="glass-card p-5 rounded-2xl space-y-4">
             {/* Header */}
             <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
                         <line x1="18" y1="20" x2="18" y2="10" />
                         <line x1="12" y1="20" x2="12" y2="4" />
                         <line x1="6" y1="20" x2="6" y2="14" />
@@ -191,114 +250,261 @@ export default function SpendingTrend({ items, allItems, currencySymbol, currenc
                 )}
             </div>
 
-            {/* Average indicator */}
+            {/* Average indicator + legend row */}
             {avg > 0 && (
-                <p className="text-sm text-muted">
-                    {T('dailyAverage')}{' '}
-                    <span className="font-semibold text-accent">{currencySymbol}{Math.round(avg).toLocaleString()}</span>
-                </p>
-            )}
-
-            {/* Bar chart */}
-            <div className="w-full overflow-x-auto rounded-xl">
-                <svg
-                    key={chartKey}
-                    viewBox={`0 0 ${chartW} ${chartH}`}
-                    width={chartW}
-                    height={chartH}
-                    className="block"
-                    style={{ minWidth: `${chartW}px`, maxWidth: '100%', height: 'auto' }}
-                    preserveAspectRatio="xMidYMid meet"
-                    role="img"
-                    aria-label={T('spendingTrend')}
-                >
-                    {/* Grid lines */}
-                    {[0.25, 0.5, 0.75, 1].map(frac => {
-                        const y = padT + drawH - frac * drawH;
-                        return (
-                            <line key={frac} x1={padL} y1={y} x2={chartW - padR} y2={y}
-                                stroke="var(--border-color)" strokeWidth="0.5" strokeDasharray="4 4" />
-                        );
-                    })}
-
-                    {/* Average line */}
-                    {avg > 0 && (
-                        <line
-                            x1={padL} y1={avgY} x2={chartW - padR} y2={avgY}
-                            stroke="var(--accent)" strokeWidth="1" strokeDasharray="6 3" opacity="0.5"
-                        />
-                    )}
-
-                    {/* Bars */}
-                    {values.map((val, i) => {
-                        const barH = val > 0 ? Math.max(2, (val / maxVal) * drawH) : 0;
-                        const x = padL + i * (barW + barGap);
-                        const y = padT + drawH - barH;
-                        const isToday = i === todayIdx;
-                        const hasValue = val > 0;
-
-                        return (
-                            <g key={i}>
-                                {/* Bar — uses CSS animation via class instead of SVG <animate> */}
-                                <rect
-                                    x={x}
-                                    y={y}
-                                    width={barW}
-                                    height={barH}
-                                    rx={mode === 'weekly' ? 4 : 2}
-                                    fill={isToday ? 'var(--accent)' : hasValue ? 'var(--accent)' : 'var(--surface-hover)'}
-                                    opacity={isToday ? 1 : hasValue ? 0.6 : 0.25}
-                                    className="animate-bar-grow"
+                <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted">
+                        {T('dailyAverage')}{' '}
+                        <span className="font-semibold text-accent">{currencySymbol}{Math.round(avg).toLocaleString()}</span>
+                    </p>
+                    {mode === 'monthly' && (
+                        <div className="flex items-center gap-1">
+                            <span className="text-[10px] text-muted">{T('less') || 'Less'}</span>
+                            {[0, 1, 2, 3, 4].map(level => (
+                                <div
+                                    key={level}
                                     style={{
-                                        transformOrigin: `${x + barW / 2}px ${padT + drawH}px`,
-                                        animationDelay: `${i * 20}ms`,
+                                        width: '10px',
+                                        height: '10px',
+                                        borderRadius: '2px',
+                                        background: level === 0
+                                            ? 'var(--surface-hover)'
+                                            : `rgba(var(--accent-rgb), ${[0, 0.12, 0.25, 0.40, 0.60][level]})`,
                                     }}
                                 />
+                            ))}
+                            <span className="text-[10px] text-muted">{T('more') || 'More'}</span>
+                        </div>
+                    )}
+                </div>
+            )}
 
-                                {/* Value label on top for weekly bars with value */}
-                                {mode === 'weekly' && val > 0 && (
-                                    <text
-                                        x={x + barW / 2}
-                                        y={y - 6}
-                                        textAnchor="middle"
-                                        fill="var(--muted)"
-                                        fontSize="10"
-                                        fontWeight="600"
-                                        fontFamily="var(--font-sans, system-ui)"
-                                    >
-                                        {val >= 1000 ? `${(val / 1000).toFixed(1)}k` : Math.round(val)}
-                                    </text>
-                                )}
+            {/* ═══ Weekly: Bar chart (fully responsive, no scroll) ═══ */}
+            {mode === 'weekly' && weeklyChart && (
+                <div className="w-full rounded-xl">
+                    <svg
+                        key={chartKey}
+                        viewBox={`0 0 ${weeklyChart.chartW} ${weeklyChart.chartH}`}
+                        className="block w-full"
+                        style={{ height: 'auto' }}
+                        preserveAspectRatio="xMidYMid meet"
+                        role="img"
+                        aria-label={T('spendingTrend')}
+                    >
+                        {/* Grid lines */}
+                        {[0.25, 0.5, 0.75, 1].map(frac => {
+                            const y = weeklyChart.padT + weeklyChart.drawH - frac * weeklyChart.drawH;
+                            return (
+                                <line key={frac} x1={weeklyChart.padL} y1={y} x2={weeklyChart.chartW - weeklyChart.padR} y2={y}
+                                    stroke="var(--border-color)" strokeWidth="0.5" strokeDasharray="4 4" />
+                            );
+                        })}
 
-                                {/* Day label */}
-                                {labels[i] && (
+                        {/* Average line */}
+                        {avg > 0 && (
+                            <line
+                                x1={weeklyChart.padL} y1={weeklyChart.avgY} x2={weeklyChart.chartW - weeklyChart.padR} y2={weeklyChart.avgY}
+                                stroke="var(--accent)" strokeWidth="1" strokeDasharray="6 3" opacity="0.5"
+                            />
+                        )}
+
+                        {/* Bars */}
+                        {values.map((val, i) => {
+                            const barH = val > 0 ? Math.max(2, (val / maxVal) * weeklyChart.drawH) : 0;
+                            const x = weeklyChart.padL + i * (weeklyChart.barW + weeklyChart.barGap);
+                            const y = weeklyChart.padT + weeklyChart.drawH - barH;
+                            const isToday = i === todayIdx;
+                            const hasValue = val > 0;
+
+                            return (
+                                <g key={i}>
+                                    <rect
+                                        x={x}
+                                        y={y}
+                                        width={weeklyChart.barW}
+                                        height={barH}
+                                        rx={4}
+                                        fill={isToday ? 'var(--accent)' : hasValue ? 'var(--accent)' : 'var(--surface-hover)'}
+                                        opacity={isToday ? 1 : hasValue ? 0.6 : 0.25}
+                                        className="animate-bar-grow"
+                                        style={{
+                                            transformOrigin: `${x + weeklyChart.barW / 2}px ${weeklyChart.padT + weeklyChart.drawH}px`,
+                                            animationDelay: `${i * 20}ms`,
+                                        }}
+                                    />
+
+                                    {/* Value label on top */}
+                                    {val > 0 && (
+                                        <text
+                                            x={x + weeklyChart.barW / 2}
+                                            y={y - 6}
+                                            textAnchor="middle"
+                                            fill="var(--muted)"
+                                            fontSize="10"
+                                            fontWeight="600"
+                                            fontFamily="var(--font-sans, system-ui)"
+                                        >
+                                            {val >= 1000 ? `${(val / 1000).toFixed(1)}k` : Math.round(val)}
+                                        </text>
+                                    )}
+
+                                    {/* Day label */}
                                     <text
-                                        x={x + barW / 2}
-                                        y={chartH - padB + 16}
+                                        x={x + weeklyChart.barW / 2}
+                                        y={weeklyChart.chartH - weeklyChart.padB + 16}
                                         textAnchor="middle"
                                         fill={isToday ? 'var(--accent)' : 'var(--muted)'}
-                                        fontSize={mode === 'weekly' ? '11' : '9'}
+                                        fontSize="11"
                                         fontWeight={isToday ? '700' : '400'}
                                         fontFamily="var(--font-sans, system-ui)"
                                     >
                                         {labels[i]}
                                     </text>
-                                )}
 
-                                {/* Today dot */}
-                                {isToday && (
-                                    <circle
-                                        cx={x + barW / 2}
-                                        cy={chartH - padB + 26}
-                                        r="2.5"
-                                        fill="var(--accent)"
-                                    />
-                                )}
-                            </g>
-                        );
-                    })}
-                </svg>
-            </div>
+                                    {/* Today dot */}
+                                    {isToday && (
+                                        <circle
+                                            cx={x + weeklyChart.barW / 2}
+                                            cy={weeklyChart.chartH - weeklyChart.padB + 26}
+                                            r="2.5"
+                                            fill="var(--accent)"
+                                        />
+                                    )}
+                                </g>
+                            );
+                        })}
+                    </svg>
+                </div>
+            )}
+
+            {/* ═══ Monthly: Calendar-style heatmap ═══ */}
+            {mode === 'monthly' && heatmapData && (
+                <div key={chartKey}>
+                    {/* Weekday header row — accent background bar */}
+                    <div
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(7, 1fr)',
+                            gap: '3px',
+                            marginBottom: '3px',
+                        }}
+                    >
+                        {heatmapData.weekdayLabels.map((label, i) => (
+                            <div
+                                key={i}
+                                className="text-center"
+                                style={{
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    color: '#fff',
+                                    background: 'rgba(var(--accent-rgb), 0.7)',
+                                    borderRadius: '4px',
+                                    padding: '5px 0',
+                                    letterSpacing: '0.03em',
+                                }}
+                            >
+                                {label}
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Calendar grid — each row is one week */}
+                    <div
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(7, 1fr)',
+                            gap: '3px',
+                        }}
+                    >
+                        {heatmapData.weeks.map((week, wi) =>
+                            week.map((cell, di) => {
+                                if (!cell) {
+                                    return <div key={`${wi}-${di}`} />;
+                                }
+
+                                const isToday = cell.day - 1 === todayIdx;
+
+                                // Heat background colors
+                                const heatBg = [
+                                    'var(--surface-hover)',           // level 0: no spending
+                                    'rgba(var(--accent-rgb), 0.12)', // level 1
+                                    'rgba(var(--accent-rgb), 0.25)', // level 2
+                                    'rgba(var(--accent-rgb), 0.40)', // level 3
+                                    'rgba(var(--accent-rgb), 0.60)', // level 4
+                                ];
+
+                                const priceLabel = cell.value > 0
+                                    ? (cell.value >= 1000
+                                        ? `${(cell.value / 1000).toFixed(cell.value >= 10000 ? 1 : 2)}K`
+                                        : `${Math.round(cell.value)}`)
+                                    : '';
+
+                                return (
+                                    <div
+                                        key={`${wi}-${di}`}
+                                        className="flex flex-col items-center justify-center"
+                                        style={{
+                                            background: heatBg[cell.level],
+                                            borderRadius: '6px',
+                                            padding: '6px 2px 5px',
+                                            outline: isToday
+                                                ? '2px solid var(--accent)'
+                                                : 'none',
+                                            outlineOffset: '-1px',
+                                            boxShadow: isToday
+                                                ? '0 0 8px rgba(var(--accent-rgb), 0.3)'
+                                                : cell.level >= 3
+                                                    ? `0 0 6px rgba(var(--accent-rgb), 0.15)`
+                                                    : 'none',
+                                            animation: 'heatmap-pop 0.25s cubic-bezier(0.25, 0.1, 0.25, 1) both',
+                                            animationDelay: `${(wi * 7 + di) * 12}ms`,
+                                            minHeight: '44px',
+                                        }}
+                                    >
+                                        {/* Date number */}
+                                        <span
+                                            style={{
+                                                fontSize: '13px',
+                                                fontWeight: 700,
+                                                color: isToday
+                                                    ? 'var(--accent)'
+                                                    : cell.level >= 2
+                                                        ? '#fff'
+                                                        : 'var(--foreground)',
+                                                lineHeight: 1.2,
+                                            }}
+                                        >
+                                            {cell.day}
+                                        </span>
+
+                                        {/* Price */}
+                                        <span
+                                            className="truncate w-full text-center"
+                                            style={{
+                                                fontSize: '9px',
+                                                fontWeight: 600,
+                                                color: cell.value > 0
+                                                    ? (isToday
+                                                        ? 'var(--accent)'
+                                                        : cell.level >= 2
+                                                            ? 'rgba(255,255,255,0.85)'
+                                                            : 'var(--muted)')
+                                                    : 'transparent',
+                                                lineHeight: 1.3,
+                                                marginTop: '1px',
+                                            }}
+                                        >
+                                            {priceLabel}
+                                        </span>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+
+
+                </div>
+            )}
         </div>
     );
 }

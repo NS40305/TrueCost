@@ -107,7 +107,7 @@ export default function EditItemModal({ item, open, onClose, showDate = false }:
                         className="p-1.5 rounded-lg hover:bg-surface-hover transition-colors"
                         aria-label="Close"
                     >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                             <line x1="18" y1="6" x2="6" y2="18" />
                             <line x1="6" y1="6" x2="18" y2="18" />
                         </svg>
@@ -122,7 +122,8 @@ export default function EditItemModal({ item, open, onClose, showDate = false }:
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl bg-surface-hover border border-border text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
+                        className="w-full px-4 py-3 rounded-[10px] bg-surface-hover text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all"
+                        style={{ border: '1px solid var(--border-color)' }}
                         placeholder={T('itemName')}
                     />
                 </div>
@@ -138,7 +139,8 @@ export default function EditItemModal({ item, open, onClose, showDate = false }:
                             onChange={(e) => setPrice(e.target.value)}
                             min="0"
                             step="0.01"
-                            className="w-full pl-12 pr-4 py-3 rounded-xl bg-surface-hover border border-border text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all tabular-nums"
+                            className="w-full pl-12 pr-4 py-3 rounded-[10px] bg-surface-hover text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all tabular-nums"
+                            style={{ border: '1px solid var(--border-color)' }}
                         />
                     </div>
                 </div>
@@ -149,7 +151,8 @@ export default function EditItemModal({ item, open, onClose, showDate = false }:
                     <select
                         value={category}
                         onChange={(e) => setCategory(e.target.value as Category)}
-                        className="w-full px-4 py-3 rounded-xl bg-surface-hover border border-border text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all appearance-none cursor-pointer"
+                        className="w-full px-4 py-3 rounded-[10px] bg-surface-hover text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all appearance-none cursor-pointer"
+                        style={{ border: '1px solid var(--border-color)' }}
                     >
                         {CATEGORIES.map((cat) => (
                             <option key={cat} value={cat}>{T(cat)}</option>
@@ -165,7 +168,8 @@ export default function EditItemModal({ item, open, onClose, showDate = false }:
                             type="date"
                             value={dateStr}
                             onChange={(e) => setDateStr(e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl bg-surface-hover border border-border text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
+                            className="w-full px-4 py-3 rounded-[10px] bg-surface-hover text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all"
+                         style={{ border: '1px solid var(--border-color)' }}
                         />
                     </div>
                 )}
@@ -174,13 +178,13 @@ export default function EditItemModal({ item, open, onClose, showDate = false }:
                 <div className="flex gap-3 pt-2">
                     <button
                         onClick={handleClose}
-                        className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold bg-surface-hover hover:bg-border text-muted transition-colors"
+                        className="flex-1 px-4 py-3 rounded-[10px] text-sm font-semibold bg-surface-hover text-muted hover:text-foreground transition-colors"
                     >
                         {T('cancel')}
                     </button>
                     <button
                         onClick={handleSave}
-                        className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold bg-accent hover:bg-accent-hover text-white transition-colors"
+                        className="flex-1 px-4 py-3 rounded-[10px] text-sm font-semibold bg-accent text-white hover:brightness-110 transition-all active:scale-[0.98]"
                     >
                         {T('save')}
                     </button>

@@ -93,8 +93,6 @@ export interface AppState {
     /* ui */
     darkMode: boolean;
     toggleDarkMode: () => void;
-    deepGreyMode: boolean;
-    toggleDeepGreyMode: () => void;
     drawerOpen: boolean;
     setDrawerOpen: (open: boolean) => void;
     language: Language;
@@ -240,16 +238,14 @@ export const useStore = create<AppState>()(
 
             darkMode: true,
             toggleDarkMode: () => set((s) => ({ darkMode: !s.darkMode })),
-            deepGreyMode: false,
-            toggleDeepGreyMode: () => set((s) => ({ deepGreyMode: !s.deepGreyMode })),
             drawerOpen: false,
             setDrawerOpen: (open) => set({ drawerOpen: open }),
             language: 'en' as Language,
             setLanguage: (l) => set({ language: l }),
 
             exportData: () => {
-                const { settings, items, subscriptions, quickAddItems, darkMode, deepGreyMode, language } = get();
-                return JSON.stringify({ settings, items, subscriptions, quickAddItems, darkMode, deepGreyMode, language }, null, 2);
+                const { settings, items, subscriptions, quickAddItems, darkMode, language } = get();
+                return JSON.stringify({ settings, items, subscriptions, quickAddItems, darkMode, language }, null, 2);
             },
             importData: (json: string) => {
                 try {
@@ -261,7 +257,6 @@ export const useStore = create<AppState>()(
                             ...(Array.isArray(data.subscriptions) && { subscriptions: data.subscriptions }),
                             ...(Array.isArray(data.quickAddItems) && { quickAddItems: data.quickAddItems }),
                             ...(data.darkMode !== undefined && { darkMode: data.darkMode }),
-                            ...(data.deepGreyMode !== undefined && { deepGreyMode: data.deepGreyMode }),
                             ...(data.language !== undefined && { language: data.language })
                         });
                         return true;
@@ -402,7 +397,6 @@ export const useStore = create<AppState>()(
                 subscriptions: state.subscriptions,
                 quickAddItems: state.quickAddItems,
                 darkMode: state.darkMode,
-                deepGreyMode: state.deepGreyMode,
                 language: state.language,
             }),
         }

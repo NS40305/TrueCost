@@ -68,7 +68,7 @@ export default function SettingsPage() {
         <div className="max-w-lg mx-auto px-4 py-8 space-y-6">
             {/* Header */}
             <div className="text-center space-y-1">
-                <h2 className="text-2xl font-bold">{T('incomeSettingTitle')}</h2>
+                <h2 className="text-2xl font-semibold" style={{ letterSpacing: '-0.03em', lineHeight: '1.1' }}>{T('incomeSettingTitle')}</h2>
                 <p className="text-sm text-muted">{T('incomeSettingDesc')}</p>
             </div>
 
@@ -98,7 +98,8 @@ export default function SettingsPage() {
                             placeholder="0"
                             min="0"
                             step="0.01"
-                            className="w-full px-4 py-3 rounded-xl bg-background border border-border text-lg font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
+                            className="w-full px-4 py-3 rounded-[10px] bg-background text-lg font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all"
+                            style={{ border: '1px solid var(--border-color)' }}
                         />
                     </div>
                     <div className="col-span-2">
@@ -108,7 +109,8 @@ export default function SettingsPage() {
                         <select
                             value={settings.currency}
                             onChange={(e) => setCurrency(e.target.value as typeof settings.currency)}
-                            className="w-full px-3 py-3 rounded-xl bg-background border border-border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all appearance-none cursor-pointer"
+                            className="w-full px-3 py-3 rounded-[10px] bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all appearance-none cursor-pointer"
+                            style={{ border: '1px solid var(--border-color)' }}
                         >
                             {CURRENCIES.map((c) => (
                                 <option key={c.code} value={c.code}>
@@ -132,14 +134,14 @@ export default function SettingsPage() {
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => setHoursPerDay(Math.max(1, settings.hoursPerDay - 1))}
-                                        className="w-8 h-8 rounded-lg bg-surface-hover hover:bg-accent/15 hover:text-accent flex items-center justify-center text-lg font-bold transition-colors"
+                                        className="w-8 h-8 rounded-lg bg-surface-hover hover:bg-accent/10 hover:text-accent flex items-center justify-center text-lg font-bold transition-colors"
                                     >
                                         −
                                     </button>
                                     <span className="w-10 text-center font-bold tabular-nums text-lg">{settings.hoursPerDay}</span>
                                     <button
                                         onClick={() => setHoursPerDay(Math.min(24, settings.hoursPerDay + 1))}
-                                        className="w-8 h-8 rounded-lg bg-surface-hover hover:bg-accent/15 hover:text-accent flex items-center justify-center text-lg font-bold transition-colors"
+                                        className="w-8 h-8 rounded-lg bg-surface-hover hover:bg-accent/10 hover:text-accent flex items-center justify-center text-lg font-bold transition-colors"
                                     >
                                         +
                                     </button>
@@ -153,14 +155,14 @@ export default function SettingsPage() {
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => setDaysPerMonth(Math.max(1, settings.daysPerMonth - 1))}
-                                        className="w-8 h-8 rounded-lg bg-surface-hover hover:bg-accent/15 hover:text-accent flex items-center justify-center text-lg font-bold transition-colors"
+                                        className="w-8 h-8 rounded-lg bg-surface-hover hover:bg-accent/10 hover:text-accent flex items-center justify-center text-lg font-bold transition-colors"
                                     >
                                         −
                                     </button>
                                     <span className="w-10 text-center font-bold tabular-nums text-lg">{settings.daysPerMonth}</span>
                                     <button
                                         onClick={() => setDaysPerMonth(Math.min(31, settings.daysPerMonth + 1))}
-                                        className="w-8 h-8 rounded-lg bg-surface-hover hover:bg-accent/15 hover:text-accent flex items-center justify-center text-lg font-bold transition-colors"
+                                        className="w-8 h-8 rounded-lg bg-surface-hover hover:bg-accent/10 hover:text-accent flex items-center justify-center text-lg font-bold transition-colors"
                                     >
                                         +
                                     </button>
@@ -178,8 +180,37 @@ export default function SettingsPage() {
                         {T('targetItem')}
                     </p>
                     <div className="glass-card p-5 space-y-3 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-bl-[100px] -z-10" />
-                        <div className="flex items-center gap-2 mb-1">
+                        {/* Golden ratio circle (φ ≈ 1.618) — price badge */}
+                        <div
+                            className="absolute z-10"
+                            style={{
+                                width: '96px',
+                                height: '96px',
+                                top: '-8px',
+                                right: '-8px',
+                                borderRadius: '50%',
+                                background: 'rgba(var(--accent-rgb), 0.12)',
+                                border: '2px solid rgba(var(--accent-rgb), 0.25)',
+                                boxShadow: '0 0 20px rgba(var(--accent-rgb), 0.08)',
+                            }}
+                        >
+                            {/* Inner φ ring: 96 / 1.618 ≈ 59px */}
+                            <div
+                                className="absolute inset-0 m-auto flex items-center justify-center"
+                                style={{
+                                    width: '59px',
+                                    height: '59px',
+                                    borderRadius: '50%',
+                                    border: '1.5px solid rgba(var(--accent-rgb), 0.18)',
+                                    background: 'rgba(var(--accent-rgb), 0.06)',
+                                }}
+                            >
+                                <span className="text-[12px] font-black tabular-nums text-accent leading-none">
+                                    {currencySymbol}{targetItem.price.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 mb-1 pr-20">
                             {targetItem.pinned && (
                                 <div className="w-6 h-6 rounded-full bg-blue-500/15 flex items-center justify-center text-blue-500">
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="-scale-x-100 -scale-y-100">
@@ -187,10 +218,7 @@ export default function SettingsPage() {
                                     </svg>
                                 </div>
                             )}
-                            <h3 className="font-semibold text-lg text-foreground">{targetItem.name}</h3>
-                            <span className="text-muted font-medium text-sm ml-auto">
-                                {currencySymbol}{targetItem.price.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
-                            </span>
+                            <h3 className="font-semibold text-lg text-foreground truncate">{targetItem.name}</h3>
                         </div>
                         {/* Render the unified result cards using the live edit settings */}
                         <ResultCards itemName={targetItem.name} result={targetItemResult} />
@@ -232,7 +260,8 @@ export default function SettingsPage() {
             {/* Save button */}
             <button
                 onClick={handleSave}
-                className="w-full py-3.5 rounded-xl bg-accent text-white font-semibold text-base shadow-lg shadow-accent/25 hover:brightness-110 active:scale-[0.98] transition-all"
+                className="w-full py-3.5 rounded-[10px] bg-accent text-white font-semibold text-base hover:brightness-110 active:scale-[0.98] transition-all"
+                style={{ boxShadow: '0 1px 3px rgba(var(--accent-rgb), 0.2)' }}
             >
                 {T('saveSettings')}
             </button>

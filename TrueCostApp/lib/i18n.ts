@@ -177,6 +177,10 @@ const translations: Record<Language, Record<string, string>> = {
         'Education': 'Education',
         'Other': 'Other',
 
+        // Heatmap legend
+        less: 'Less',
+        more: 'More',
+
         // Navigation & Features
         updateHistory: 'Update History',
     },
@@ -335,6 +339,10 @@ const translations: Record<Language, Record<string, string>> = {
         'Health': '健康',
         'Education': '教育',
         'Other': '其他',
+
+        // Heatmap legend
+        less: '少',
+        more: '多',
 
         // Navigation & Features
         updateHistory: '更新歷史',
@@ -495,6 +503,10 @@ const translations: Record<Language, Record<string, string>> = {
         'Education': '教育',
         'Other': '其他',
 
+        // Heatmap legend
+        less: '少',
+        more: '多',
+
         // Navigation & Features
         updateHistory: '更新历史',
     },
@@ -654,6 +666,10 @@ const translations: Record<Language, Record<string, string>> = {
         'Education': '教育',
         'Other': 'その他',
 
+        // Heatmap legend
+        less: '少',
+        more: '多',
+
         // Navigation & Features
         updateHistory: '更新履歴',
     },
@@ -812,6 +828,10 @@ const translations: Record<Language, Record<string, string>> = {
         'Health': 'Santé',
         'Education': 'Éducation',
         'Other': 'Autre',
+
+        // Heatmap legend
+        less: 'Moins',
+        more: 'Plus',
 
         // Navigation & Features
         updateHistory: 'Historique des mises à jour',
