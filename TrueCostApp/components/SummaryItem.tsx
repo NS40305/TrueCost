@@ -14,14 +14,15 @@ interface SummaryItemProps {
     dateLabel: string;
 }
 
-/* iOS Mail — critically-damped springs */
-const SPRING      = { type: 'spring' as const, stiffness: 800, damping: 57, restDelta: 0.5 };
-const SPRING_EXIT = { type: 'spring' as const, stiffness: 600, damping: 49, restDelta: 0.5 };
+/* iOS Mail — overdamped springs (no oscillation) */
+const SPRING      = { type: 'spring' as const, stiffness: 800, damping: 65, restDelta: 0.5, restSpeed: 10 };
+const SPRING_EXIT = { type: 'spring' as const, stiffness: 1200, damping: 70, restDelta: 1 };
+const TWEEN_SNAP  = { type: 'tween' as const, duration: 0.15, ease: [0.25, 1, 0.5, 1] } as const;
 
 const SWIPE_COMMIT = 8;      // px to lock horizontal vs vertical (iOS ≈ 8)
 const SNAP_RATIO   = 0.4;    // 40 % of action width → snap open
 const FLICK_V      = 500;    // px/s flick → snap open
-const LERP_ALPHA   = 0.65;   // low-pass filter: 0→heavy smooth, 1→raw input
+const SMALL_SNAP   = 20;     // px — below this use tween instead of spring
 
 const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemProps) {
     const settings = useStore((s) => s.settings);
@@ -43,7 +44,6 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
     const dragCommitted = useRef(false);
     const isClosing = useRef(false);
     const dragSide = useRef<'positive' | 'negative' | null>(null);
-    const smoothX = useRef(0);
     const ACTION_WIDTH_LEFT = 100;   // delete (swipe left)
     const ACTION_WIDTH_RIGHT = 100;  // regret/undo (swipe right)
 
@@ -82,13 +82,12 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
     const handleDragStart = useCallback(() => {
         controls.stop();
         isClosing.current = false;
-        smoothX.current = x.get();
         hasDragged.current = true;
         dragCommitted.current = false;
         if (openState.current === 'right') dragSide.current = 'positive';
         else if (openState.current === 'left') dragSide.current = 'negative';
         else dragSide.current = null;
-    }, [controls, x]);
+    }, [controls]);
 
     const handleDrag = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         if (!dragCommitted.current) {
@@ -104,13 +103,9 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
             else if (info.offset.x < 0) dragSide.current = 'negative';
         }
 
-        const raw = x.get();
-        const filtered = smoothX.current + LERP_ALPHA * (raw - smoothX.current);
-        smoothX.current = filtered;
-        x.set(filtered);
-
-        if (dragSide.current === 'positive' && filtered < 0) x.set(0);
-        else if (dragSide.current === 'negative' && filtered > 0) x.set(0);
+        const cur = x.get();
+        if (dragSide.current === 'positive' && cur < 0) x.set(0);
+        else if (dragSide.current === 'negative' && cur > 0) x.set(0);
     }, [x]);
 
     const snapTo = useCallback((target: number, side: 'left' | 'right' | null) => {
@@ -121,14 +116,25 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
         cardOpacity.set(1);
         cardScale.set(1);
         setOpenSwipeId(side ? item.id : null);
-        controls.start({ x: target, transition: SPRING });
-    }, [controls, rightOpacity, leftOpacity, cardOpacity, cardScale, setOpenSwipeId, item.id]);
+        const dist = Math.abs(x.get() - target);
+        const transition = dist < SMALL_SNAP && target === 0 ? TWEEN_SNAP : SPRING;
+        controls.start({ x: target, transition });
+    }, [controls, rightOpacity, leftOpacity, cardOpacity, cardScale, setOpenSwipeId, item.id, x]);
 
     const handleDragEnd = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         const vx = info.velocity.x;
         const cx = x.get();
 
-        if (!dragCommitted.current) { snapTo(0, null); return; }
+        if (!dragCommitted.current) {
+            isClosing.current = true;
+            openState.current = null;
+            rightOpacity.set(0);
+            leftOpacity.set(0);
+            cardOpacity.set(1);
+            cardScale.set(1);
+            controls.start({ x: 0, transition: { duration: 0 } });
+            return;
+        }
 
         // Already open → any reverse intent closes
         if (openState.current === 'right' && (vx < -FLICK_V || cx < ACTION_WIDTH_RIGHT * 0.5)) {

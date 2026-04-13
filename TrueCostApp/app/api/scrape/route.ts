@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
 
-const ALLOWED_HOSTS = [
-    /^(www\.)?amazon\.(com|co\.uk|ca|de|fr|it|es|co\.jp|com\.au|in|com\.br|com\.mx|nl|sg|ae|sa|pl|se|com\.be|com\.tr|eg)$/,
-    /^a\.co$/,
-    /^amzn\.to$/,
-];
+const AMAZON_HOST = /^(www\.)?amazon\.(com|co\.uk|ca|de|fr|it|es|co\.jp|com\.au|in|com\.br|com\.mx|nl|sg|ae|sa|pl|se|com\.be|com\.tr|eg)$/;
+const SHORT_HOSTS  = /^(a\.co|amzn\.to)$/;
+const ALLOWED_HOSTS = [AMAZON_HOST, SHORT_HOSTS];
 
 const FETCH_TIMEOUT_MS = 8000;
 const MAX_BODY_BYTES = 2 * 1024 * 1024; // 2 MB
+const MAX_REDIRECTS = 5;
 
 export async function POST(req: Request) {
     try {
@@ -33,28 +32,48 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Only Amazon URLs are supported' }, { status: 400 });
         }
 
+        const browserHeaders: Record<string, string> = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Referer': 'https://www.google.com/',
+            'sec-ch-ua': '"Not A(Brand";v="99", "Google Chrome";v="121", "Chromium";v="121"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"',
+            'sec-fetch-dest': 'document',
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-site': 'cross-site',
+            'sec-fetch-user': '?1',
+            'upgrade-insecure-requests': '1',
+        };
+
+        // Resolve short URLs (a.co / amzn.to) by following redirects manually
+        let targetUrl = parsed.href;
+        if (SHORT_HOSTS.test(parsed.hostname)) {
+            let location = parsed.href;
+            for (let i = 0; i < MAX_REDIRECTS; i++) {
+                const rRes = await fetch(location, { redirect: 'manual', headers: browserHeaders });
+                const loc = rRes.headers.get('location');
+                if (!loc || rRes.status < 300 || rRes.status >= 400) break;
+                location = loc.startsWith('/') ? `${new URL(location).origin}${loc}` : loc;
+            }
+            const finalUrl = new URL(location);
+            if (!AMAZON_HOST.test(finalUrl.hostname)) {
+                return NextResponse.json({ error: 'Short URL did not resolve to Amazon' }, { status: 400 });
+            }
+            targetUrl = finalUrl.href;
+        }
+
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
-        const response = await fetch(parsed.href, {
+        const response = await fetch(targetUrl, {
             signal: controller.signal,
+            redirect: 'follow',
             cache: 'no-store',
             next: { revalidate: 0 },
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-                'Accept-Language': 'en-US,en;q=0.9',
-                'Accept-Encoding': 'gzip, deflate, br',
-                'Referer': 'https://www.google.com/',
-                'sec-ch-ua': '"Not A(Brand";v="99", "Google Chrome";v="121", "Chromium";v="121"',
-                'sec-ch-ua-mobile': '?0',
-                'sec-ch-ua-platform': '"Windows"',
-                'sec-fetch-dest': 'document',
-                'sec-fetch-mode': 'navigate',
-                'sec-fetch-site': 'cross-site',
-                'sec-fetch-user': '?1',
-                'upgrade-insecure-requests': '1',
-            }
+            headers: browserHeaders,
         });
 
         clearTimeout(timer);

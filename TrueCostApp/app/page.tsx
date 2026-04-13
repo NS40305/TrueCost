@@ -79,13 +79,14 @@ export default function CalculatorPage() {
     const newUrl = e.target.value;
     setUrl(newUrl);
 
-    if (newUrl.includes('amazon.') || newUrl.includes('a.co') || newUrl.includes('amzn.to')) {
+    if (newUrl.includes('amazon.') || newUrl.includes('a.co/') || newUrl.includes('amzn.to/')) {
       setIsScraping(true);
+      const fullUrl = /^https?:\/\//i.test(newUrl) ? newUrl : `https://${newUrl}`;
       try {
         const res = await fetch('/api/scrape', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: newUrl }),
+          body: JSON.stringify({ url: fullUrl }),
         });
 
         if (res.ok) {

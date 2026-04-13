@@ -24,7 +24,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0b0f1a',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f5f5f7' },
+    { media: '(prefers-color-scheme: dark)', color: '#000000' },
+  ],
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -43,9 +46,10 @@ export default function RootLayout({
             __html: `
               try {
                 const s = JSON.parse(localStorage.getItem('truecost-storage') || '{}');
-                if (s.state && s.state.darkMode !== false) {
-                  document.documentElement.classList.add('dark');
-                }
+                const isDark = !s.state || s.state.darkMode !== false;
+                if (isDark) document.documentElement.classList.add('dark');
+                var c = isDark ? '#000000' : '#f5f5f7';
+                document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.content=c;});
               } catch(e) { document.documentElement.classList.add('dark'); }
               try {
                 if ('serviceWorker' in navigator) {
