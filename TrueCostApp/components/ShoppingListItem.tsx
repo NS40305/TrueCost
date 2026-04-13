@@ -5,16 +5,13 @@ import { ShoppingItem, useStore } from '@/lib/store';
 import { getTimeNeeded, formatHours } from '@/lib/calculations';
 import { CURRENCIES } from '@/lib/constants';
 import { t } from '@/lib/i18n';
-import { motion, useAnimation, PanInfo, useMotionValue, useMotionValueEvent } from 'framer-motion';
+import { motion, useAnimation, PanInfo, useMotionValue, useTransform } from 'framer-motion';
 import EditItemModal from './EditItemModal';
 import CategoryIcon from './CategoryIcon';
 
 interface ShoppingListItemProps {
     item: ShoppingItem;
 }
-
-const SPRING      = { type: 'tween' as const, duration: 0.3, ease: [0.25, 1, 0.5, 1] as [number, number, number, number] };
-const SPRING_EXIT = { type: 'tween' as const, duration: 0.22, ease: [0.25, 1, 0.5, 1] as [number, number, number, number] };
 
 const SWIPE_COMMIT = 8;      // px to lock horizontal vs vertical (iOS ≈ 8)
 const SNAP_RATIO   = 0.4;    // 40 % of action width → snap open
@@ -41,26 +38,18 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
     const openState = useRef<'left' | 'right' | null>(null);
     const dragCommitted = useRef(false);
     const isClosing = useRef(false);
-    const dragSide = useRef<'positive' | 'negative' | null>(null);
     const ACTION_WIDTH_LEFT = 160;
     const ACTION_WIDTH_RIGHT = 100;
 
-    const rightOpacity = useMotionValue(0);
-    const leftOpacity  = useMotionValue(0);
+    const SPRING_CONFIG = { type: 'spring' as const, stiffness: 400, damping: 35 };
 
-    useMotionValueEvent(x, 'change', (v) => {
-        if (isClosing.current) return;
-        rightOpacity.set(v > 2 ? 1 : 0);
-        leftOpacity.set(v < -2 ? 1 : 0);
-    });
+    const rightOpacity = useTransform(x, [0, SWIPE_COMMIT], [0, 1]);
+    const leftOpacity  = useTransform(x, [0, -SWIPE_COMMIT], [0, 1]);
 
     useEffect(() => {
         if (openSwipeId !== item.id && openState.current !== null) {
             openState.current = null;
-            isClosing.current = true;
-            rightOpacity.set(0);
-            leftOpacity.set(0);
-            controls.start({ x: 0, transition: SPRING });
+            controls.start({ x: 0, transition: SPRING_CONFIG });
         }
     }, [openSwipeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -69,9 +58,6 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
         isClosing.current = false;
         hasDragged.current = true;
         dragCommitted.current = false;
-        if (openState.current === 'right') dragSide.current = 'positive';
-        else if (openState.current === 'left') dragSide.current = 'negative';
-        else dragSide.current = null;
     }, [controls]);
 
     const handleDrag = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
@@ -82,36 +68,27 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
             if (absX > absY) dragCommitted.current = true;
             else return;
         }
-
-        if (!dragSide.current) {
-            if (info.offset.x > 0) dragSide.current = 'positive';
-            else if (info.offset.x < 0) dragSide.current = 'negative';
-        }
-
-        const cur = x.get();
-        if (dragSide.current === 'positive' && cur < 0) x.set(0);
-        else if (dragSide.current === 'negative' && cur > 0) x.set(0);
-    }, [x]);
+    }, []);
 
     const snapTo = useCallback((target: number, side: 'left' | 'right' | null) => {
-        isClosing.current = true;
+        isClosing.current = false;
         openState.current = side;
-        rightOpacity.set(side === 'right' ? 1 : 0);
-        leftOpacity.set(side === 'left' ? 1 : 0);
-        setOpenSwipeId(side ? item.id : null);
-        controls.start({ x: target, transition: SPRING });
-    }, [controls, rightOpacity, leftOpacity, setOpenSwipeId, item.id]);
+        
+        if (side !== null) {
+            setOpenSwipeId(item.id);
+        } else if (openSwipeId === item.id) {
+            setOpenSwipeId(null);
+        }
+        
+        controls.start({ x: target, transition: SPRING_CONFIG });
+    }, [controls, setOpenSwipeId, item.id, openSwipeId]);
 
     const handleDragEnd = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         const vx = info.velocity.x;
         const cx = x.get();
 
         if (!dragCommitted.current) {
-            isClosing.current = true;
-            openState.current = null;
-            rightOpacity.set(0);
-            leftOpacity.set(0);
-            controls.start({ x: 0, transition: { duration: 0 } });
+            snapTo(0, null);
             return;
         }
 
@@ -136,7 +113,7 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
 
     const handleComplete = useCallback(async () => {
         setIsCompleting(true);
-        await controls.start({ x: '100%', opacity: 0, transition: SPRING_EXIT });
+        await controls.start({ x: '100%', opacity: 0, transition: { type: 'spring', stiffness: 200, damping: 25 } });
         completeItem(item.id);
     }, [controls, completeItem, item.id]);
 
@@ -146,7 +123,7 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
     }, [togglePin, item.id, snapTo]);
 
     const handleDelete = useCallback(async () => {
-        await controls.start({ x: '-100%', opacity: 0, transition: SPRING_EXIT });
+        await controls.start({ x: '-100%', opacity: 0, transition: { type: 'spring', stiffness: 200, damping: 25 } });
         removeItem(item.id);
     }, [controls, removeItem, item.id]);
 
@@ -190,8 +167,8 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
                             </>
                         ) : (
                             <>
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="-scale-x-100 -scale-y-100">
-                                    <path d="M16 2l-4 4-6 1-3 3 3.5 3.5L2 18l4.5-4.5L10 17l3-3 1-6 4-4-2-2z" />
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                                    <path d="M12 2c-1.1 0-2 .9-2 2 0 .74.4 1.38 1 1.72V7l-4 4h3v7l2 4 2-4v-7h3l-4-4V5.72c.6-.34 1-.98 1-1.72 0-1.1-.9-2-2-2z" transform="rotate(45 12 12)" />
                                 </svg>
                                 <span className="text-xs">{T('pin')}</span>
                             </>
@@ -235,8 +212,8 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
                 <div className="w-10 h-10 rounded-xl bg-accent/15 flex items-center justify-center shrink-0 relative">
                     {item.pinned && (
                         <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="white" stroke="none" className="-scale-x-100 -scale-y-100">
-                                <path d="M16 2l-4 4-6 1-3 3 3.5 3.5L2 18l4.5-4.5L10 17l3-3 1-6 4-4-2-2z" />
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="white" stroke="none">
+                                <path d="M12 2c-1.1 0-2 .9-2 2 0 .74.4 1.38 1 1.72V7l-4 4h3v7l2 4 2-4v-7h3l-4-4V5.72c.6-.34 1-.98 1-1.72 0-1.1-.9-2-2-2z" transform="rotate(45 12 12)" />
                             </svg>
                         </div>
                     )}

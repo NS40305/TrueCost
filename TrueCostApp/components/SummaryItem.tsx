@@ -5,7 +5,7 @@ import { ShoppingItem, useStore } from '@/lib/store';
 import { getTimeNeeded, formatHours } from '@/lib/calculations';
 import { CURRENCIES } from '@/lib/constants';
 import { t } from '@/lib/i18n';
-import { motion, useAnimation, PanInfo, useMotionValue, useMotionValueEvent } from 'framer-motion';
+import { motion, useAnimation, PanInfo, useMotionValue, useTransform } from 'framer-motion';
 import EditItemModal from './EditItemModal';
 import CategoryIcon from './CategoryIcon';
 
@@ -13,9 +13,6 @@ interface SummaryItemProps {
     item: ShoppingItem;
     dateLabel: string;
 }
-
-const SPRING      = { type: 'tween' as const, duration: 0.3, ease: [0.25, 1, 0.5, 1] as [number, number, number, number] };
-const SPRING_EXIT = { type: 'tween' as const, duration: 0.22, ease: [0.25, 1, 0.5, 1] as [number, number, number, number] };
 
 const SWIPE_COMMIT = 8;      // px to lock horizontal vs vertical (iOS ≈ 8)
 const SNAP_RATIO   = 0.4;    // 40 % of action width → snap open
@@ -40,26 +37,18 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
     const openState = useRef<'left' | 'right' | null>(null);
     const dragCommitted = useRef(false);
     const isClosing = useRef(false);
-    const dragSide = useRef<'positive' | 'negative' | null>(null);
     const ACTION_WIDTH_LEFT = 100;   // delete (swipe left)
     const ACTION_WIDTH_RIGHT = 100;  // regret/undo (swipe right)
 
-    const rightOpacity = useMotionValue(0);
-    const leftOpacity  = useMotionValue(0);
+    const SPRING_CONFIG = { type: 'spring' as const, stiffness: 400, damping: 35 };
 
-    useMotionValueEvent(x, 'change', (v) => {
-        if (isClosing.current) return;
-        rightOpacity.set(v > 2 ? 1 : 0);
-        leftOpacity.set(v < -2 ? 1 : 0);
-    });
+    const rightOpacity = useTransform(x, [0, SWIPE_COMMIT], [0, 1]);
+    const leftOpacity  = useTransform(x, [0, -SWIPE_COMMIT], [0, 1]);
 
     useEffect(() => {
         if (openSwipeId !== item.id && openState.current !== null) {
             openState.current = null;
-            isClosing.current = true;
-            rightOpacity.set(0);
-            leftOpacity.set(0);
-            controls.start({ x: 0, transition: SPRING });
+            controls.start({ x: 0, transition: SPRING_CONFIG });
         }
     }, [openSwipeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -68,9 +57,6 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
         isClosing.current = false;
         hasDragged.current = true;
         dragCommitted.current = false;
-        if (openState.current === 'right') dragSide.current = 'positive';
-        else if (openState.current === 'left') dragSide.current = 'negative';
-        else dragSide.current = null;
     }, [controls]);
 
     const handleDrag = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
@@ -81,36 +67,25 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
             if (absX > absY) dragCommitted.current = true;
             else return;
         }
-
-        if (!dragSide.current) {
-            if (info.offset.x > 0) dragSide.current = 'positive';
-            else if (info.offset.x < 0) dragSide.current = 'negative';
-        }
-
-        const cur = x.get();
-        if (dragSide.current === 'positive' && cur < 0) x.set(0);
-        else if (dragSide.current === 'negative' && cur > 0) x.set(0);
-    }, [x]);
+    }, []);
 
     const snapTo = useCallback((target: number, side: 'left' | 'right' | null) => {
-        isClosing.current = true;
+        isClosing.current = false;
         openState.current = side;
-        rightOpacity.set(side === 'right' ? 1 : 0);
-        leftOpacity.set(side === 'left' ? 1 : 0);
-        setOpenSwipeId(side ? item.id : null);
-        controls.start({ x: target, transition: SPRING });
-    }, [controls, rightOpacity, leftOpacity, setOpenSwipeId, item.id]);
+        if (side !== null) {
+            setOpenSwipeId(item.id);
+        } else if (openSwipeId === item.id) {
+            setOpenSwipeId(null);
+        }
+        controls.start({ x: target, transition: SPRING_CONFIG });
+    }, [controls, setOpenSwipeId, item.id, openSwipeId]);
 
     const handleDragEnd = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         const vx = info.velocity.x;
         const cx = x.get();
 
         if (!dragCommitted.current) {
-            isClosing.current = true;
-            openState.current = null;
-            rightOpacity.set(0);
-            leftOpacity.set(0);
-            controls.start({ x: 0, transition: { duration: 0 } });
+            snapTo(0, null);
             return;
         }
 
@@ -133,16 +108,14 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
         snapTo(0, null);
     }, [controls, ACTION_WIDTH_LEFT, ACTION_WIDTH_RIGHT, x, snapTo]);
 
-    const handleRegret = useCallback(async () => {
-        isClosing.current = true;
-        rightOpacity.set(0);
-        await controls.start({ x: 0, transition: SPRING });
+    const handleRegret = useCallback(() => {
         openState.current = null;
+        snapTo(0, null);
         regretItem(item.id);
-    }, [controls, regretItem, item.id, rightOpacity]);
+    }, [controls, regretItem, item.id, snapTo]);
 
     const handleDelete = useCallback(async () => {
-        await controls.start({ x: '-100%', opacity: 0, transition: SPRING_EXIT });
+        await controls.start({ x: '-100%', opacity: 0, transition: { type: 'spring', stiffness: 200, damping: 25 } });
         removeItem(item.id);
     }, [controls, removeItem, item.id]);
 
