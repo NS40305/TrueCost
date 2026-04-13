@@ -18,7 +18,7 @@ interface SummaryItemProps {
 const SPRING      = { type: 'spring' as const, stiffness: 800, damping: 57, restDelta: 0.5 };
 const SPRING_EXIT = { type: 'spring' as const, stiffness: 600, damping: 35 };
 
-const SWIPE_COMMIT = 3;      // px to lock horizontal vs vertical
+const SWIPE_COMMIT = 8;      // px to lock horizontal vs vertical (iOS ≈ 8)
 const SNAP_RATIO   = 0.4;    // 40 % of action width → snap open
 const FLICK_V      = 500;    // px/s flick → snap open
 
@@ -66,8 +66,9 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
         if (!dragCommitted.current) {
             const absX = Math.abs(info.offset.x);
             const absY = Math.abs(info.offset.y);
-            if (absY > SWIPE_COMMIT && absX < SWIPE_COMMIT) return;
-            if (absX >= SWIPE_COMMIT) dragCommitted.current = true;
+            if (absX < SWIPE_COMMIT && absY < SWIPE_COMMIT) return;
+            if (absX > absY) dragCommitted.current = true;
+            else return;
         }
 
         if (!dragSide.current) {
