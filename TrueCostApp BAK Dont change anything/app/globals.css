@@ -1,0 +1,346 @@
+@import "tailwindcss";
+
+/* ── Custom theme tokens ──────────── */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border-color);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* ── Light mode (default) ─────────── */
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --surface: #ffffff;
+  --surface-hover: #f1f5f9;
+  --border-color: #e2e8f0;
+  --muted: #64748b;
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+}
+
+/* ── Dark mode ────────────────────── */
+.dark {
+  --background: #0b0f1a;
+  --foreground: #e2e8f0;
+  --surface: #131a2b;
+  --surface-hover: #1c2540;
+  --border-color: #1e293b;
+  --muted: #94a3b8;
+  --accent: #818cf8;
+  --accent-hover: #6366f1;
+}
+
+/* ── Deep Grey mode ────────── */
+:root.deep-grey, .deep-grey {
+  --background: #18191a; 
+  --foreground: #e4e6eb; 
+  --surface: #242526; 
+  --surface-hover: #3a3b3c; 
+  --border-color: #3e4042; 
+  --muted: #b0b3b8; 
+  --accent: #818cf8;
+  --accent-hover: #6366f1;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── Scrollbar styling (dark) ─────── */
+.dark ::-webkit-scrollbar {
+  width: 6px;
+}
+.dark ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 999px;
+}
+
+/* ── Custom utilities ─────────────── */
+.glass-card {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  will-change: transform;
+  transform: translateZ(0);
+}
+.glass-card:hover {
+  border-color: var(--accent);
+}
+
+/* ── Drawer animation ─────────────── */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease-out;
+  will-change: opacity;
+}
+.drawer-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.drawer-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  max-width: 80vw;
+  background: var(--surface);
+  border-right: 1px solid var(--border-color);
+  z-index: 210;
+  transform: translateX(-100%);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  display: flex;
+  flex-direction: column;
+}
+.drawer-panel.open {
+  transform: translateX(0);
+}
+
+/* ── Input styling ────────────────── */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Toast slide-in animation */
+@keyframes toast-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-toast-in {
+  animation: toast-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Chart animations */
+@keyframes chart-fade-in {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes category-row-in {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.animate-chart-in {
+  animation: chart-fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-category-row {
+  opacity: 0;
+  animation: category-row-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Worth insight card animation */
+@keyframes worth-card-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.worth-insight-card {
+  animation: worth-card-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+/* Bar chart grow-in animation */
+@keyframes bar-grow {
+  from { transform: scaleY(0); opacity: 0; }
+  to   { transform: scaleY(1); opacity: 1; }
+}
+.animate-bar-grow {
+  animation: bar-grow 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Edit modal animations */
+@keyframes modal-backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes modal-backdrop-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes modal-sheet-in {
+  from { opacity: 0; transform: translateY(100%); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes modal-sheet-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(100%); }
+}
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  z-index: 300;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: modal-backdrop-in 0.25s ease-out forwards;
+}
+.modal-overlay.closing {
+  animation: modal-backdrop-out 0.2s ease-in forwards;
+}
+.modal-sheet {
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: 1.25rem 1.25rem 0 0;
+  animation: modal-sheet-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.modal-sheet input[type="date"] {
+  box-sizing: border-box;
+  max-width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.modal-overlay.closing .modal-sheet {
+  animation: modal-sheet-out 0.2s ease-in forwards;
+}
+
+/* ── Prevent iOS Safari Auto-Zoom ─── */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="password"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ── Bottom Nav Bar (mobile only) ─── */
+@layer base {
+  .bottom-nav {
+    display: none;
+  }
+
+  @media (max-width: 767px) {
+    .bottom-nav {
+      display: block;
+      position: fixed;
+      bottom: 25px;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 0 16px;
+      pointer-events: none;
+    }
+
+    .bottom-nav-inner {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      height: 64px;
+      border-radius: 22px;
+      background: rgba(20, 22, 30, 0.72);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 -2px 24px rgba(0, 0, 0, 0.35), 0 0 0 0.5px rgba(255, 255, 255, 0.04) inset;
+      padding: 0 4px;
+    }
+
+    :root:not(.dark) .bottom-nav-inner {
+      background: rgba(248, 250, 252, 0.78);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      box-shadow: 0 -2px 24px rgba(0, 0, 0, 0.08), 0 0 0 0.5px rgba(0, 0, 0, 0.04) inset;
+    }
+
+    .bottom-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: 6px 0;
+      min-width: 0;
+      flex: 1;
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.15s ease;
+    }
+
+    .bottom-nav-item:active {
+      transform: scale(0.92);
+    }
+
+    .bottom-nav-icon {
+      width: 42px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      color: var(--muted);
+    }
+
+    .bottom-nav-icon.active {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(99, 102, 241, 0.4);
+    }
+
+    :root:not(.dark) .bottom-nav-icon.active {
+      box-shadow: 0 2px 12px rgba(99, 102, 241, 0.25);
+    }
+
+    .bottom-nav-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      line-height: 1;
+      color: var(--muted);
+      transition: color 0.2s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 64px;
+      text-align: center;
+    }
+
+    .bottom-nav-item.active .bottom-nav-label {
+      color: var(--accent);
+    }
+
+    main {
+      padding-bottom: 84px !important;
+    }
+  }
+}
+

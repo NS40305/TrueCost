@@ -1,0 +1,5 @@
+ecdfe1f Fix: Remove trailing .00 from entire number text in hours, days and years
+0db0d0f fix(app): store specific location tags for items and fix pointer-event overlap in SummaryItem button layer
+ac64cf4 feat(app): apply solid background and elastic swipe fixes to Shopping List items
+56ed33d feat(app): add swipe gestures with solid backgrounds and limit fix to summary items
+2c1c7ac feat(web): add dark mode toggle and high-fidelity phone mockup frame

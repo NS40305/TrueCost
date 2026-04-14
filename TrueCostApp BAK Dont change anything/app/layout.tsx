@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import ClientShell from '@/components/ClientShell';
 
-const inter = Inter({ variable: '--font-inter', subsets: ['latin'] });
+const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
+const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'TrueCost – Is It Worth Your Time?',
@@ -24,14 +25,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f5f5f7' },
-    { media: '(prefers-color-scheme: dark)', color: '#000000' },
-  ],
+  themeColor: '#0b0f1a',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  userScalable: true,
+  userScalable: false,
 };
 
 export default function RootLayout({
@@ -40,16 +38,16 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning translate="no">
       <head>
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192.png" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
               try {
                 const s = JSON.parse(localStorage.getItem('truecost-storage') || '{}');
-                const isDark = !s.state || s.state.darkMode !== false;
-                if (isDark) document.documentElement.classList.add('dark');
-                var c = isDark ? '#000000' : '#f5f5f7';
-                document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.removeAttribute('media'); m.content=c;});
+                if (s.state && s.state.darkMode !== false) {
+                  document.documentElement.classList.add('dark');
+                  if (s.state.deepGreyMode) document.documentElement.classList.add('deep-grey');
+                }
               } catch(e) { document.documentElement.classList.add('dark'); }
               try {
                 if ('serviceWorker' in navigator) {
@@ -62,7 +60,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.variable} antialiased`} suppressHydrationWarning>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
         <ClientShell>{children}</ClientShell>
       </body>
     </html>
