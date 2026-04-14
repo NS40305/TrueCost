@@ -34,6 +34,7 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
     const controls = useAnimation();
     const x = useMotionValue(0);
     const [isCompleting, setIsCompleting] = useState(false);
+    const [activeSide, setActiveSide] = useState<'left' | 'right' | null>(null);
     const [editOpen, setEditOpen] = useState(false);
     const hasDragged = useRef(false);
     const openState = useRef<'left' | 'right' | null>(null);
@@ -53,6 +54,7 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
             rightOpacity.set(0);
             leftOpacity.set(0);
             controls.set({ x: 0 });
+            setActiveSide(null);
         }
     }, [openSwipeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -103,6 +105,7 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
     const snapTo = useCallback((target: number, side: 'left' | 'right' | null) => {
         isClosing.current = false;
         openState.current = side;
+        setActiveSide(side);
 
         if (side !== null) {
             setOpenSwipeId(item.id);
@@ -163,7 +166,7 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
         <div className="relative overflow-hidden rounded-2xl bg-surface/50" onClick={(e) => e.stopPropagation()}>
             {/* Complete action (left background — revealed on swipe right) */}
             <motion.div
-                style={{ opacity: isCompleting ? 1 : rightOpacity }}
+                style={{ opacity: isCompleting ? 1 : rightOpacity, pointerEvents: activeSide === 'right' || isCompleting ? 'auto' : 'none' }}
                 className={`absolute inset-y-0 left-0 flex ${isCompleting ? 'w-full z-20' : 'w-full z-0'}`}
             >
                 <button
@@ -181,7 +184,7 @@ const ShoppingListItem = memo(function ShoppingListItem({ item }: ShoppingListIt
 
             {/* Pin + Delete actions (right background — revealed on swipe left) */}
             <motion.div
-                style={{ opacity: leftOpacity }}
+                style={{ opacity: leftOpacity, pointerEvents: activeSide === 'left' ? 'auto' : 'none' }}
                 className="absolute inset-y-0 right-0 flex w-full z-0"
             >
                 <button

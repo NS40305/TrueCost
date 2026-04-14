@@ -34,6 +34,7 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
     const controls = useAnimation();
     const x = useMotionValue(0);
     const [editOpen, setEditOpen] = useState(false);
+    const [activeSide, setActiveSide] = useState<'left' | 'right' | null>(null);
     const hasDragged = useRef(false);
     const openState = useRef<'left' | 'right' | null>(null);
     const dragCommitted = useRef(false);
@@ -52,6 +53,7 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
             rightOpacity.set(0);
             leftOpacity.set(0);
             controls.set({ x: 0 });
+            setActiveSide(null);
         }
     }, [openSwipeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -102,6 +104,7 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
     const snapTo = useCallback((target: number, side: 'left' | 'right' | null) => {
         isClosing.current = false;
         openState.current = side;
+        setActiveSide(side);
         if (side !== null) {
             setOpenSwipeId(item.id);
             rightOpacity.set(side === 'right' ? 1 : 0);
@@ -155,7 +158,7 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
         <div className="relative overflow-hidden rounded-2xl bg-surface/50" onClick={(e) => e.stopPropagation()}>
             {/* Regret action (left background — revealed on swipe right) */}
             <motion.div
-                style={{ opacity: rightOpacity }}
+                style={{ opacity: rightOpacity, pointerEvents: activeSide === 'right' ? 'auto' : 'none' }}
                 className="absolute inset-y-0 left-0 flex w-full z-0"
             >
                 <button
@@ -181,7 +184,7 @@ const SummaryItem = memo(function SummaryItem({ item, dateLabel }: SummaryItemPr
 
             {/* Delete action (right background — revealed on swipe left) */}
             <motion.div
-                style={{ opacity: leftOpacity }}
+                style={{ opacity: leftOpacity, pointerEvents: activeSide === 'left' ? 'auto' : 'none' }}
                 className="absolute inset-y-0 right-0 flex w-full z-0"
             >
                 <button
