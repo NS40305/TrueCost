@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useStore } from '@/lib/store';
@@ -16,6 +16,11 @@ export default function Drawer() {
         loadDemoData,
     } = useStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        document.body.style.overflow = drawerOpen ? 'hidden' : '';
+        return () => { document.body.style.overflow = ''; };
+    }, [drawerOpen]);
 
     const T = (key: string) => t(language, key);
 
@@ -142,25 +147,6 @@ export default function Drawer() {
 
             {/* Panel */}
             <nav className={`drawer-panel ${drawerOpen ? 'open' : ''}`}>
-                {/* Header */}
-                <div className="flex items-center justify-between px-5 h-12 shrink-0"
-                    style={{ borderBottom: '1px solid var(--border-color)' }}
-                >
-                    <span className="font-semibold text-lg" style={{ letterSpacing: '-0.03em' }}>
-                        TrueCost
-                    </span>
-                    <button
-                        onClick={() => setDrawerOpen(false)}
-                        className="p-1.5 rounded-lg hover:bg-surface-hover transition-colors"
-                        aria-label="Close menu"
-                    >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                            <line x1="18" y1="6" x2="6" y2="18" />
-                            <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                    </button>
-                </div>
-
                 {/* Nav links */}
                 <div className="flex-1 overflow-y-auto py-3 px-3 space-y-1">
                     {NAV_ITEMS.map((item) => {

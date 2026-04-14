@@ -16,6 +16,22 @@ export default function ClientShell({ children }: { children: ReactNode }) {
         setHydrated(true);
     }, []);
 
+    // Prevent iOS Safari swipe-back / swipe-forward navigation
+    useEffect(() => {
+        const EDGE_ZONE = 20; // px from screen edge
+
+        const handleTouchStart = (e: TouchEvent) => {
+            const x = e.touches[0]?.clientX ?? 0;
+            const w = window.innerWidth;
+            if (x < EDGE_ZONE || x > w - EDGE_ZONE) {
+                e.preventDefault();
+            }
+        };
+
+        document.addEventListener('touchstart', handleTouchStart, { passive: false });
+        return () => document.removeEventListener('touchstart', handleTouchStart);
+    }, []);
+
     useEffect(() => {
         if (hydrated) {
             document.documentElement.classList.toggle('dark', darkMode);
